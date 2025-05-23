@@ -72,35 +72,50 @@ const handleSubmit = async () => {
 
 <template>
   <!-- Citizen Registration -->
-  <section class="bg-[#EFEFEF]" v-if="isActiveLink('/register/student')">
+  <section class="bg-[#F0F3FF] font-poppins">
     <div class="container m-auto max-w-lg py-14">
       <div class="bg-white px-6 py-8 mb-4 rounded-xl m-4 md:m-0 border">
         <form @submit.prevent="handleSubmit">
-          <img class="h-20 w-auto m-auto" :src="logo" alt="Vue Jobs" />
-          <h2 class="text-3xl text-center font-bold mb-2">Create Your Citizen Account</h2>
-          <p class="text-center text-gray-500 mb-8">
-            Fill in your details to register as a citizen.
-          </p>
+          <img class="h-20 w-auto m-auto" :src="logo" alt="Vue Logo" />
+          <div v-if="isActiveLink('/register/student')">
+            <h2 class="text-3xl text-center font-bold mb-2">Buat Akun Siswa</h2>
+            <p class="text-center text-gray-600 mb-8">
+              Isi informasi Anda untuk mulai belajar dan menjelajahi berbagai materi seru.
+            </p>
+          </div>
+
+          <div v-if="isActiveLink('/register/teacher')">
+            <h2 class="text-3xl text-center font-bold mb-2">Buat Akun Pengajar</h2>
+            <p class="text-center text-gray-600 mb-8">
+              Daftarkan diri Anda dan mulai berbagi pengetahuan serta menginspirasi siswa.
+            </p>
+          </div>
 
           <div class="mb-2 hidden">
-            <input type="text" :value="role" class="border w-full py-2 px-3 mb-4 mt-2" required />
+            <input
+              type="text"
+              :value="role"
+              class="border w-full py-2 px-3 mb-4 mt-2"
+              disabled
+              required
+            />
           </div>
 
           <div class="mb-2">
             <i class="fa-solid fa-user me-2"></i>
-            <label class="text-gray-700 font-bold mb-2">Full Name</label>
+            <label class="text-gray-700 font-bold mb-2">Nama Lengkap</label>
             <input
               type="text"
               v-model="register.full_name"
               class="border w-full py-2 px-3 mb-4 mt-2"
-              placeholder="Enter Full Name"
+              placeholder="Masukan Nama Lengkap"
               required
             />
           </div>
 
           <div class="mb-2">
             <i class="fa-solid fa-envelope me-2"></i>
-            <label class="text-gray-700 font-bold mb-4">Email Address</label>
+            <label class="text-gray-700 font-bold mb-4">Alamat Email</label>
             <input
               type="email"
               v-model="register.email"
@@ -117,7 +132,7 @@ const handleSubmit = async () => {
               type="password"
               v-model="register.password"
               class="border w-full py-2 px-3 mb-4 mt-2"
-              placeholder="Enter Password"
+              placeholder="Masukan Password"
               required
             />
           </div>
@@ -125,115 +140,40 @@ const handleSubmit = async () => {
           <button
             :class="[
               !register.isSubmitting
-                ? 'hover:contrast-85 cursor-pointer'
-                : 'hover:contrast-75 cursor-not-allowed',
-              'bg-[#136F63]',
+                ? 'hover:bg-[#4970D1] cursor-pointer'
+                : 'hover:bg-[#4970D1] cursor-not-allowed',
+              'bg-[#5988FF]',
               'text-white',
-              'font-bold',
+              'font-medium',
               'py-4',
               'px-4',
               'w-full',
             ]"
             type="submit"
           >
-            Sign Up
+            Buat Akun
           </button>
 
           <div class="flex flex-col justify-center items-center mt-5">
-            <p class="text-gray-500 mt-2">
-              Registering as an teacher?
-              <RouterLink to="/register/teacher" class="text-[#136F63] hover:contrast-50">
-                Register here
+            <p v-if="isActiveLink('/register/student')" class="text-gray-700 mt-2">
+              Mendaftar sebagai pengajar?
+              <RouterLink to="/register/teacher" class="text-[#5988FF] hover:text-[#4970D1]">
+                Daftar di sini
               </RouterLink>
             </p>
-            <p class="text-gray-500 my-2">— or —</p>
-            <p class="text-gray-500">
-              Already have an account?
-              <RouterLink to="/login" class="text-[#136F63] hover:contrast-50"> Log In </RouterLink>
-            </p>
-          </div>
-        </form>
-      </div>
-    </div>
-  </section>
 
-  <!-- Agency Registration -->
-  <section class="bg-[#F6F6F9]" v-if="isActiveLink('/register/teacher')">
-    <div class="container m-auto max-w-lg py-14">
-      <div class="bg-white px-6 py-8 mb-4 rounded-xl m-4 md:m-0">
-        <form @submit.prevent="handleSubmit">
-          <img class="h-20 w-auto m-auto" :src="logo" alt="Vue Jobs" />
-          <h2 class="text-3xl text-center font-bold mb-2">Get Started as an Agency</h2>
-          <p class="text-center text-gray-500 mb-8">Register your agency to access the platform.</p>
-
-          <div class="mb-2 hidden">
-            <input type="text" :value="role" class="border w-full py-2 px-3 mb-4 mt-2" required />
-          </div>
-
-          <div class="mb-2">
-            <i class="fa-solid fa-user me-2"></i>
-            <label class="text-gray-700 font-bold mb-2">Full Name</label>
-            <input
-              type="text"
-              v-model="register.full_name"
-              class="border w-full py-2 px-3 mb-4 mt-2"
-              placeholder="Enter Full Name"
-              required
-            />
-          </div>
-
-          <div class="mb-2">
-            <i class="fa-solid fa-envelope me-2"></i>
-            <label class="text-gray-700 font-bold mb-4">Email Address</label>
-            <input
-              type="email"
-              v-model="register.email"
-              class="border w-full py-2 px-3 mb-4 mt-2"
-              placeholder="eg. example@mail.com"
-              required
-            />
-          </div>
-
-          <div class="mb-4">
-            <i class="fa-solid fa-lock me-2"></i>
-            <label class="text-gray-700 font-bold">Password</label>
-            <input
-              type="password"
-              v-model="register.password"
-              class="border w-full py-2 px-3 mb-4 mt-2"
-              placeholder="Enter Password"
-              required
-            />
-          </div>
-
-          <button
-            :class="[
-              !register.isSubmitting
-                ? 'hover:contrast-85 cursor-pointer'
-                : 'hover:contrast-75 cursor-not-allowed',
-              'bg-[#136F63]',
-              'text-white',
-              'font-bold',
-              'py-4',
-              'px-4',
-              'w-full',
-            ]"
-            type="submit"
-          >
-            Sign Up
-          </button>
-
-          <div class="flex flex-col justify-center items-center mt-5">
-            <p class="text-gray-500 mt-2">
-              Registering as a student?
-              <RouterLink to="/register/citizen" class="text-[#136F63] hover:contrast-50">
-                Register here
+            <p v-if="isActiveLink('/register/teacher')" class="text-gray-700 mt-2">
+              Mendaftar sebagai siswa?
+              <RouterLink to="/register/student" class="text-[#5988FF] hover:text-[#4970D1]">
+                Daftar di sini
               </RouterLink>
             </p>
-            <p class="text-gray-500 my-2">— or —</p>
-            <p class="text-gray-500">
-              Already have an account?
-              <RouterLink to="/login" class="text-[#136F63] hover:contrast-50"> Log In </RouterLink>
+            <p class="text-gray-700 my-2">— atau —</p>
+            <p class="text-gray-700">
+              Sudah memiliki akun?
+              <RouterLink to="/login" class="text-[#5988FF] hover:text-[#4970D1]">
+                Masuk
+              </RouterLink>
             </p>
           </div>
         </form>

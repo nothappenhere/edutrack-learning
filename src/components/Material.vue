@@ -7,9 +7,25 @@ import { RouterLink } from 'vue-router'
     id="material"
     class="max-w-screen-xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16 font-poppins"
   >
+    <div class="grid gap-6 sm:grid-cols-1 md:grid-cols-2 items-center mb-16">
+      <!-- Header -->
+      <h1
+        class="text-3xl font-medium font-poppins text-gray-900 sm:text-4xl leading-tight bg-white p-6 rounded-3xl text-center md:text-left"
+      >
+        Pilih <span class="text-[#5988FF]">Jalur</span> Belajarmu Sendiri!
+      </h1>
+
+      <!-- Deskripsi -->
+      <p class="text-gray-700 text-base sm:text-lg leading-normal text-justify">
+        Di platform ini, kami menyediakan jalur belajar fleksibel yang disesuaikan dengan minat dan
+        bakat siswa. Dengan pendekatan ini, mereka bisa tumbuh dan belajar sesuai dengan ritme dan
+        keunikan masing-masing.
+      </p>
+    </div>
+
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-stretch md:grid-cols-3 md:gap-8">
       <!-- Materi Matematika -->
-      <div class="divide-y divide-gray-300 rounded-2xl shadow-xs bg-[#F0F3FF] hover:scale">
+      <div class="divide-y divide-gray-300 rounded-2xl shadow-xs bg-[#F0F3FF] hover:scale-105">
         <div class="p-6 sm:px-8">
           <h2 class="text-sm font-medium text-[#5988FF]">
             Dasar-Menengah
@@ -116,7 +132,7 @@ import { RouterLink } from 'vue-router'
       </div>
 
       <!-- Materi Bahasa Indonesia -->
-      <div class="divide-y divide-gray-300 rounded-2xl shadow-xs bg-[#F0F3FF]">
+      <div class="divide-y divide-gray-300 rounded-2xl shadow-xs bg-[#F0F3FF] hover:scale-105">
         <div class="p-6 sm:px-8">
           <h2 class="text-sm font-medium text-[#5988FF]">
             Dasar-Menengah
@@ -223,7 +239,7 @@ import { RouterLink } from 'vue-router'
       </div>
 
       <!-- Materi IPA -->
-      <div class="divide-y divide-gray-300 rounded-2xl shadow-xs bg-[#F0F3FF]">
+      <div class="divide-y divide-gray-300 rounded-2xl shadow-xs bg-[#F0F3FF] hover:scale-105">
         <div class="p-6 sm:px-8">
           <h2 class="text-sm font-medium text-[#5988FF]">
             Dasar-Menengah
@@ -328,6 +344,15 @@ import { RouterLink } from 'vue-router'
           </ul>
         </div>
       </div>
+    </div>
+
+    <div class="flex justify-center items-center mt-10">
+      <RouterLink
+        class="inline-block rounded-sm bg-white border px-8 py-3 text-sm font-medium text-[#5988FF] transition hover:scale-110 hover:-rotate-2 focus:ring-3 focus:outline-hidden hover:bg-[#5988FF] hover:text-white"
+        to="/login"
+      >
+        Dan Masih Banyak Lagi
+      </RouterLink>
     </div>
   </div>
 </template>

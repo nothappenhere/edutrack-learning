@@ -73,16 +73,16 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <section class="bg-[#EFEFEF]">
+  <section class="bg-[#F0F3FF] font-poppins">
     <div class="container m-auto max-w-lg py-14">
       <div class="bg-white px-6 py-8 mb-4 rounded-xl m-4 md:m-0 border">
         <form @submit.prevent="handleSubmit">
-          <img class="h-20 w-auto m-auto" :src="logo" alt="Vue Jobs" />
-          <h2 class="text-3xl text-center font-bold mb-8">Log in to your account</h2>
+          <img class="h-20 w-auto m-auto" :src="logo" alt="Vue Logo" />
+          <h2 class="text-3xl text-center font-bold mb-8">Masuk ke akun Anda</h2>
 
           <div class="mb-2">
             <i class="fa-solid fa-envelope me-2"></i>
-            <label class="text-gray-700 font-bold mb-4">Email Address</label>
+            <label class="text-gray-700 font-bold mb-4">Alamat Email</label>
             <input
               type="email"
               v-model="login.email"
@@ -99,7 +99,7 @@ const handleSubmit = async () => {
               type="password"
               v-model="login.password"
               class="border w-full py-2 px-3 mb-4 mt-2"
-              placeholder="Enter Password"
+              placeholder="Masukan Password"
               required
             />
           </div>
@@ -107,26 +107,26 @@ const handleSubmit = async () => {
           <button
             :class="[
               !login.isSubmitting
-                ? 'hover:contrast-85 cursor-pointer'
-                : 'hover:contrast-75 cursor-not-allowed',
-              'bg-[#136F63]',
+                ? 'hover:bg-[#4970D1] cursor-pointer'
+                : 'hover:bg-[#4970D1] cursor-not-allowed',
+              'bg-[#5988FF]',
               'text-white',
-              'font-bold',
+              'font-medium',
               'py-4',
               'px-4',
               'w-full',
             ]"
             type="submit"
           >
-            Sign In
+            Masuk
           </button>
 
           <div class="flex justify-between mt-5">
             <RouterLink to="/forgot-password" class="text-gray-700 hover:text-gray-900"
-              >Forgot Password?</RouterLink
+              >Lupa Kata Sandi?</RouterLink
             >
             <RouterLink to="/register/student" class="text-gray-700 hover:text-gray-900"
-              >Create Free Account</RouterLink
+              >Buat Akun Gratis</RouterLink
             >
           </div>
         </form>

@@ -31,12 +31,12 @@ import { RouterLink, useRoute } from 'vue-router'
 </script>
 
 <template>
-  <header class="bg-white border-b">
+  <header class="bg-white border-b sticky top-0 z-10 scroll-smooth">
     <div class="mx-auto max-w-screen-xl px-8 sm:px-10 lg:px-12">
       <div class="flex h-20 items-center justify-between">
         <div class="md:flex md:items-center md:gap-12">
           <RouterLink
-            class="flex flex-1 items-center justify-center md:items-stretch md:justify-start text-[#136F63]"
+            class="flex flex-1 items-center justify-center md:items-stretch md:justify-start text-[#5988FF]"
             to="/"
           >
             <span class="sr-only">Home</span>
@@ -47,7 +47,7 @@ import { RouterLink, useRoute } from 'vue-router'
               />
             </svg>
             <span class="hidden md:block text-black text-2xl font-bold ml-4">
-              Edu<span class="text-[#136F63]">Track</span>
+              Edu<span class="text-[#5988FF]">Track</span>
             </span>
           </RouterLink>
         </div>
@@ -56,32 +56,88 @@ import { RouterLink, useRoute } from 'vue-router'
           <nav aria-label="Global">
             <ul class="flex items-center gap-10 text-sm">
               <li>
-                <a class="text-gray-700 transition hover:text-black" href="#banner">Beranda</a>
-              </li>
+                <a
+                  v-if="useRoute().path === '/'"
+                  class="text-gray-700 transition hover:text-black"
+                  href="#"
+                  >Beranda</a
+                >
 
-              <li>
-                <a class="text-gray-700 transition hover:text-black" href="#material">Materi</a>
-              </li>
-
-              <li>
-                <a class="text-gray-700 transition hover:text-black" to="#">Kuis</a>
-              </li>
-
-              <li>
-                <RouterLink class="text-gray-700 transition hover:text-black" to="#"
-                  >Hasil Belajar</RouterLink
+                <RouterLink
+                  v-else-if="
+                    useRoute().path === '/login' ||
+                    useRoute().path === '/forgot-password' ||
+                    useRoute().path === '/register/student' ||
+                    useRoute().path === '/register/teacher'
+                  "
+                  class="text-gray-700 transition hover:text-black"
+                  to="/#"
+                  >Beranda</RouterLink
                 >
               </li>
 
               <li>
-                <RouterLink class="text-gray-700 transition hover:text-black" to="#"
+                <a
+                  v-if="useRoute().path === '/'"
+                  class="text-gray-700 transition hover:text-black"
+                  href="#timeline"
+                  >Alur Pengguna</a
+                >
+
+                <RouterLink
+                  v-else-if="
+                    useRoute().path === '/login' ||
+                    useRoute().path === '/forgot-password' ||
+                    useRoute().path === '/register/student' ||
+                    useRoute().path === '/register/teacher'
+                  "
+                  class="text-gray-700 transition hover:text-black"
+                  to="/#timeline"
+                  >Alur Pengguna</RouterLink
+                >
+              </li>
+
+              <li>
+                <a
+                  v-if="useRoute().path === '/'"
+                  class="text-gray-700 transition hover:text-black"
+                  href="#material"
+                  >Materi</a
+                >
+
+                <RouterLink
+                  v-else-if="
+                    useRoute().path === '/login' ||
+                    useRoute().path === '/forgot-password' ||
+                    useRoute().path === '/register/student' ||
+                    useRoute().path === '/register/teacher'
+                  "
+                  class="text-gray-700 transition hover:text-black"
+                  to="/#material"
+                  >Materi</RouterLink
+                >
+              </li>
+
+              <li>
+                <a
+                  v-if="useRoute().path === '/'"
+                  class="text-gray-700 transition hover:text-black"
+                  href="#feedback"
+                  >Feedback</a
+                >
+
+                <RouterLink
+                  v-else-if="
+                    useRoute().path === '/login' ||
+                    useRoute().path === '/forgot-password' ||
+                    useRoute().path === '/register/student' ||
+                    useRoute().path === '/register/teacher'
+                  "
+                  class="text-gray-700 transition hover:text-black"
+                  to="/#feedback"
                   >Feedback</RouterLink
                 >
               </li>
-
-              <!-- <li>
-                <RouterLink class="text-gray-700 transition hover:text-black" to="#">Profil</RouterLink>
-              </li> -->
             </ul>
           </nav>
         </div>
@@ -97,7 +153,7 @@ import { RouterLink, useRoute } from 'vue-router'
 
             <div class="hidden sm:flex">
               <RouterLink
-                class="bg-[#136F63] px-5 py-2.5 text-sm font-bold text-white border-2 border-[#136F63] hover:bg-[#147F70] hover:border-[#147F70]"
+                class="bg-[#5988FF] px-5 py-2.5 text-sm font-bold text-white border-2 border-[#5988FF] hover:bg-[#4970D1] hover:border-[#4970D1]"
                 to="/register/student"
               >
                 Daftar
