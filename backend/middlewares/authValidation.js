@@ -12,39 +12,45 @@ const handleValidationErrors = (req, res, next) => {
 
 // Validasi registrasi
 export const validateRegister = [
-  param('role').isIn(['admin', 'agency', 'citizen']).withMessage('Invalid role.'),
+  param('role').isIn(['student', 'teacher', 'admin']).withMessage('Role tidak valid'),
   body('full_name')
     .notEmpty()
-    .withMessage('Full Name is required.')
+    .withMessage('Nama lengkap harus diisi')
     .isLength({ min: 3 })
-    .withMessage('Full Name must be at least 3 characters.'),
-  body('email').isEmail().withMessage('Invalid email format.'),
+    .withMessage('Nama Lengkap harus minimal 3 karakter'),
+  body('email').notEmpty().isEmail().withMessage('Format email tidak valid'),
   body('password')
     .notEmpty()
-    .withMessage('Password is required.')
+    .withMessage('Kata sandi harus diisi')
     .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters long.'),
+    .withMessage('Kata sandi harus minimal 8 karakter'),
   handleValidationErrors,
 ]
 
 // Validasi login
 export const validateLogin = [
-  body('email').isEmail().withMessage('Invalid email format.'),
+  body('email').notEmpty().isEmail().withMessage('Format email tidak valid'),
   body('password')
     .notEmpty()
-    .withMessage('Password is required.')
+    .withMessage('Kata sandi harus diisi')
     .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters long.'),
+    .withMessage('Kata sandi harus minimal 8 karakter'),
+  handleValidationErrors,
+]
+
+// Validasi email exist
+export const validateEmailExist = [
+  body('email').notEmpty().isEmail().withMessage('Format email tidak valid'),
   handleValidationErrors,
 ]
 
 // Validasi reset password
 export const validateResetPassword = [
-  body('email').isEmail().withMessage('Invalid email format.'),
+  body('email').notEmpty().isEmail().withMessage('Format email tidak valid'),
   body('password')
     .notEmpty()
-    .withMessage('Password is required.')
+    .withMessage('Kata sandi harus diisi')
     .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters long.'),
+    .withMessage('Kata sandi harus minimal 8 karakter'),
   handleValidationErrors,
 ]

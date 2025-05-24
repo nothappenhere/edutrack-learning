@@ -16,7 +16,7 @@ export const registerUser = async (req, res, next) => {
     const existingUser = checkEmail.rows
 
     if (existingUser.length > 0) {
-      return res.status(400).json({ error: 'Email is already registered.' })
+      return res.status(400).json({ error: 'Alamat email yang digunakan telah terdaftar' })
     }
 
     // Hash password sebelum disimpan ke database
@@ -25,13 +25,13 @@ export const registerUser = async (req, res, next) => {
 
     // Simpan user baru ke database
     const result = await db.query(
-      'INSERT INTO users (full_name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING user_id',
+      'INSERT INTO users (full_name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id',
       [full_name, email, hashedPassword, role],
     )
 
     res.status(201).json({
-      message: 'User registered successfully.',
-      user_id: result.rows[0].user_id,
+      message: 'Pendaftaran berhasil',
+      user_id: result.rows[0].id,
     })
   } catch (error) {
     console.error('Registration error:', error)
@@ -49,14 +49,14 @@ export const loginUser = async (req, res, next) => {
   try {
     // Query user berdasarkan email
     const result = await db.query(
-      'SELECT user_id, full_name, email, password_hash, role FROM users WHERE email = $1',
+      'SELECT id, full_name, email, password_hash, role FROM users WHERE email = $1',
       [email],
     )
     const selectResult = result.rows
 
     if (selectResult.length === 0) {
       return res.status(401).json({
-        error: 'Invalid credentials, please check your email or password.',
+        error: 'Kredensial tidak valid, periksa email atau kata sandi Anda',
       })
     }
 
@@ -66,26 +66,24 @@ export const loginUser = async (req, res, next) => {
     const isMatch = await bcrypt.compare(password, user.password_hash)
     if (!isMatch) {
       return res.status(401).json({
-        error: 'Invalid credentials, please check your email or password.',
+        error: 'Kredensial tidak valid, periksa email atau kata sandi Anda',
       })
     }
 
     // Generate token JWT
     const token = jwt.sign(
-      { user_id: user.user_id, email: user.email, role: user.role },
+      { user_id: user.id, full_name: user.full_name, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '1h' },
     )
 
     res.status(200).json({
-      message: 'Login successful.',
+      message: 'Login berhasil',
+      user_id: user.id,
+      full_name: user.full_name,
+      email: user.email,
+      role: user.role,
       token,
-      data: {
-        user_id: user.user_id,
-        full_name: user.full_name,
-        email: user.email,
-        role: user.role,
-      },
     })
   } catch (error) {
     console.error('Login error:', error)
@@ -95,7 +93,7 @@ export const loginUser = async (req, res, next) => {
 
 /**
  * @desc Check if the given email is already registered
- * @route POST /api/auth/check-email
+ * @route POST /api/auth/check-email-exist
  */
 export const checkEmailExist = async (req, res, next) => {
   const { email } = req.body
@@ -107,17 +105,17 @@ export const checkEmailExist = async (req, res, next) => {
 
     if (existingUser.length === 0) {
       return res.status(404).json({
-        error: 'No email address found.',
-        exists: false,
+        error: 'Alamat email tidak ditemukan',
+        exist: false,
       })
     }
 
     res.status(200).json({
-      message: 'Email address has been registered.',
-      exists: true,
+      message: 'Alamat email ditemukan, silakan masukan kata sandi baru',
+      exist: true,
     })
   } catch (error) {
-    console.error('Email-check error:', error)
+    console.error('Email-exist-check error:', error)
     next(error)
   }
 }
@@ -130,19 +128,22 @@ export const resetPasswordUser = async (req, res, next) => {
   const { email, password } = req.body
 
   try {
+    // Hash password sebelum disimpan ke database
     const saltRounds = 10
     const hashedPassword = await bcrypt.hash(password, saltRounds)
 
+    // Simpan data user baru ke database
     const result = await db.query('UPDATE users SET password_hash = $1 WHERE email = $2', [
       hashedPassword,
       email,
     ])
 
+    // Periksa apakah email sudah terdaftar
     if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'No email address found.' })
+      return res.status(404).json({ error: 'Alamat email tidak ditemukan.' })
     }
 
-    res.status(200).json({ message: 'Password reset successfully.' })
+    res.status(200).json({ message: 'Berhasil mengatur ulang kata sandi' })
   } catch (error) {
     console.error('Password-reset error:', error)
     next(error)

@@ -1,4 +1,50 @@
-<script setup></script>
+<script setup>
+import { useUserStore } from '@/stores/user'
+import { computed } from 'vue'
+
+const userStore = useUserStore()
+userStore.loadUser()
+const role = userStore.user?.role
+
+const header = computed(() => {
+  switch (role) {
+    case 'student':
+      return 'Selamat datang di perjalanan belajar Anda dengan'
+    case 'teacher':
+      return 'Tingkatkan dampak pengajaran Anda melalui'
+    case 'admin':
+      return 'Kelola sistem pendidikan dengan efisien melalui'
+    default:
+      return 'Tingkatkan kualitas belajar dengan'
+  }
+})
+
+const dynamicPhrase = computed(() => {
+  switch (role) {
+    case 'student':
+      return 'pendekatan adaptif'
+    case 'teacher':
+      return 'analisis siswa yang cerdas'
+    case 'admin':
+      return 'dashboard pengelolaan terpusat'
+    default:
+      return 'analisis adaptif'
+  }
+})
+
+const description = computed(() => {
+  switch (role) {
+    case 'student':
+      return 'Temukan cara belajar yang disesuaikan dengan kemampuan Anda. Dapatkan umpan balik yang membangun, capai target akademik, dan kembangkan potensi Anda secara maksimal.'
+    case 'teacher':
+      return 'Identifikasi kebutuhan belajar siswa, berikan pembelajaran yang sesuai, dan pantau perkembangan mereka melalui data yang akurat dan real-time.'
+    case 'admin':
+      return 'Optimalkan manajemen sistem pembelajaran, pantau aktivitas pengguna, dan ambil keputusan strategis berbasis data untuk peningkatan mutu pendidikan.'
+    default:
+      return 'Platform pembelajaran pintar yang menyesuaikan materi dan evaluasi berdasarkan kemampuan siswa. Pantau perkembangan, berikan feedback, dan bantu siswa meraih hasil terbaik.'
+  }
+})
+</script>
 
 <template>
   <section id="#" class="bg-white lg:grid lg:h-auto lg:place-content-center">
@@ -7,13 +53,12 @@
     >
       <div class="max-w-prose text-left">
         <h1 class="text-4xl font-extrabold font-poppins text-gray-900 sm:text-5xl leading-tight">
-          Tingkatkan kualitas belajar dengan
-          <strong class="text-[#5988FF]">analisis adaptif</strong>
+          {{ header }}
+          <strong class="text-[#5988FF]">{{ dynamicPhrase }}</strong>
         </h1>
 
         <p class="mt-4 text-base text-pretty sm:text-lg/relaxed">
-          Platform pembelajaran pintar yang menyesuaikan materi dan evaluasi berdasarkan kemampuan
-          siswa. Pantau perkembangan, berikan feedback, dan bantu siswa meraih hasil terbaik.
+          {{ description }}
         </p>
 
         <div class="mt-4 flex gap-4 sm:mt-6">

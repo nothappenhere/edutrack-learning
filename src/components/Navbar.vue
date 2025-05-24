@@ -1,33 +1,27 @@
-<script setup lang="ts">
+<script setup>
 import { computed } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
-// import { useToast } from 'vue-toastification'
-// import router from '@/router'
-// import logo from '@/assets/img/logo.png'
-// import { useUserStore } from '@/stores/role'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
 
-// const isActiveLink = (routePath) => {
-//   const route = useRoute()
-//   return route.path === routePath
-// }
+import { useToastOption } from '@/stores/toast.js'
+import { useUserStore } from '@/stores/user.js'
 
-// const userStore = useUserStore()
-// const role = computed(() => userStore.role)
+const route = useRoute()
+const router = useRouter()
+const toast = useToast()
+const toastOpt = useToastOption()
 
-// const logout = () => {
-//   const toast = useToast()
+const userStore = useUserStore()
+userStore.loadUser()
+const role = computed(() => userStore.role)
 
-//   localStorage.removeItem('authToken')
-//   localStorage.removeItem('userId')
-//   localStorage.removeItem('userRole')
-//   localStorage.removeItem('admin-instansiId')
-//   localStorage.removeItem('userEmail')
+const isActiveLink = (routePath) => route.path === routePath
 
-//   userStore.setRole(null) // logout
-
-//   toast.success('Log out Successfully')
-//   router.push('/')
-// }
+const logout = () => {
+  userStore.clearUser()
+  toast.success('Berhasil logout.', toastOpt.toastOptions)
+  router.push('/')
+}
 </script>
 
 <template>
@@ -35,9 +29,9 @@ import { RouterLink, useRoute } from 'vue-router'
     <div class="mx-auto max-w-screen-xl px-8 sm:px-10 lg:px-12">
       <div class="flex h-20 items-center justify-between">
         <div class="md:flex md:items-center md:gap-12">
-          <RouterLink
+          <a
             class="flex flex-1 items-center justify-center md:items-stretch md:justify-start text-[#5988FF]"
-            to="/"
+            href="/#"
           >
             <span class="sr-only">Home</span>
             <svg class="h-8" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -49,12 +43,24 @@ import { RouterLink, useRoute } from 'vue-router'
             <span class="hidden md:block text-black text-2xl font-bold ml-4">
               Edu<span class="text-[#5988FF]">Track</span>
             </span>
-          </RouterLink>
+          </a>
         </div>
 
         <div class="hidden md:block">
           <nav aria-label="Global">
-            <ul class="flex items-center gap-10 text-sm">
+            <!-- Jika sudah login, tampikan menu dashboard -->
+            <ul v-if="role === 'teacher'" class="flex items-center gap-10 text-sm">
+              <li>
+                <RouterLink
+                  class="text-gray-700 transition hover:text-black"
+                  :to="`${route.fullPath}/add-material`"
+                  >Tambah Materi</RouterLink
+                >
+              </li>
+            </ul>
+
+            <!-- Jika belum login, tampikan menu default -->
+            <ul v-else class="flex items-center gap-10 text-sm">
               <li>
                 <a
                   v-if="useRoute().path === '/'"
@@ -66,7 +72,7 @@ import { RouterLink, useRoute } from 'vue-router'
                 <RouterLink
                   v-else-if="
                     useRoute().path === '/login' ||
-                    useRoute().path === '/forgot-password' ||
+                    useRoute().path === '/reset-password' ||
                     useRoute().path === '/register/student' ||
                     useRoute().path === '/register/teacher'
                   "
@@ -87,7 +93,7 @@ import { RouterLink, useRoute } from 'vue-router'
                 <RouterLink
                   v-else-if="
                     useRoute().path === '/login' ||
-                    useRoute().path === '/forgot-password' ||
+                    useRoute().path === '/reset-password' ||
                     useRoute().path === '/register/student' ||
                     useRoute().path === '/register/teacher'
                   "
@@ -108,7 +114,7 @@ import { RouterLink, useRoute } from 'vue-router'
                 <RouterLink
                   v-else-if="
                     useRoute().path === '/login' ||
-                    useRoute().path === '/forgot-password' ||
+                    useRoute().path === '/reset-password' ||
                     useRoute().path === '/register/student' ||
                     useRoute().path === '/register/teacher'
                   "
@@ -129,7 +135,7 @@ import { RouterLink, useRoute } from 'vue-router'
                 <RouterLink
                   v-else-if="
                     useRoute().path === '/login' ||
-                    useRoute().path === '/forgot-password' ||
+                    useRoute().path === '/reset-password' ||
                     useRoute().path === '/register/student' ||
                     useRoute().path === '/register/teacher'
                   "
@@ -142,7 +148,20 @@ import { RouterLink, useRoute } from 'vue-router'
           </nav>
         </div>
 
-        <div class="flex items-center gap-4">
+        <!-- Jika sudah login, tampikan [logout] -->
+        <div v-if="role" class="flex items-center gap-4">
+          <div class="sm:flex sm:gap-4">
+            <button
+              class="bg-[#FFFFFF] px-5 py-2.5 text-sm font-bold text-black border-2 border-black hover:bg-black hover:text-white duration-300"
+              @click="logout"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+
+        <!-- Jika belum login, tampilkan [login, register] -->
+        <div v-else class="flex items-center gap-4">
           <div class="sm:flex sm:gap-4">
             <RouterLink
               class="bg-[#FFFFFF] px-5 py-2.5 text-sm font-bold text-black border-2 border-black hover:bg-black hover:text-white duration-300"
@@ -159,23 +178,6 @@ import { RouterLink, useRoute } from 'vue-router'
                 Daftar
               </RouterLink>
             </div>
-          </div>
-
-          <div class="block md:hidden">
-            <button
-              class="rounded-sm bg-gray-100 p-2 text-gray-600 transition hover:text-gray-600/75"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="size-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
           </div>
         </div>
       </div>

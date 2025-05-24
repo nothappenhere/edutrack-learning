@@ -4,7 +4,8 @@ import dotenv from 'dotenv'
 // import helmet from 'helmet'
 // import morgan from 'morgan'
 
-import auth from './models/auth.js'
+import auth from './routes/auth.js'
+import materials from './routes/materials.js'
 import errorHandler from './middlewares/errorHandler.js'
 import notFound from './middlewares/notFound.js'
 
@@ -19,7 +20,7 @@ app.use(express.urlencoded({ extended: false }))
 // app.use(morgan('dev')) // Log HTTP requests
 
 //* Routes
-app.use('/api', auth)
+app.use('/api', auth, materials)
 
 //* Error Handling
 app.use(notFound)

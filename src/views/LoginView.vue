@@ -1,17 +1,15 @@
 <script setup>
-import { computed, reactive, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { reactive } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
+import axios from 'axios'
+
 import { useToast } from 'vue-toastification'
 import { useToastOption } from '@/stores/toast.js'
-import { useUserStore } from '@/stores/role.js'
-import router from '@/router'
-import axios from 'axios'
-import logo from '@/assets/img/logo.png'
+import { useUserStore } from '@/stores/user.js'
+import { loginUser } from '@/services/authService.js'
 
-const userStore = useUserStore()
-const role = computed(() => userStore.role)
-
-const login = reactive({
+const router = useRouter()
+const form = reactive({
   email: '',
   password: '',
   isSubmitting: false,
@@ -20,54 +18,50 @@ const login = reactive({
 const handleSubmit = async () => {
   const toast = useToast()
   const toastOpt = useToastOption()
+  const userStore = useUserStore()
 
-  if (!login.email || !login.password) {
-    return toast.error('All fields are required!', toastOpt.toastOptions)
-  }
-  if (login.password.length < 8) {
-    return toast.error('Password must be at least 8 characters.', toastOpt.toastOptions)
+  if (!form.email || !form.password) {
+    return toast.error('Semua kolom harus diisi!', toastOpt.toastOptions)
   }
 
-  const newLogin = {
-    ...login,
+  if (form.password.length < 8) {
+    return toast.error('Kata sandi harus minimal 8 karakter.', toastOpt.toastOptions)
   }
+
+  form.isSubmitting = !form.isSubmitting
+  // await new Promise((resolve) => setTimeout(resolve, 3000))
 
   try {
-    login.isSubmitting = !login.isSubmitting
-    // await new Promise((resolve) => setTimeout(resolve, 3000))
-
-    const response = await axios.post('http://localhost:8000/api/auth/login', newLogin)
-    const user = response.data.data
-
-    localStorage.setItem('userId', user.user_id) // Simpan id user di localStorage
-    localStorage.setItem('authToken', response.data.token) // Simpan token di localStorage
-    localStorage.setItem('UserFullName', user.full_name) // Simpan nama lengkap user di localStorage
-    localStorage.setItem('userRole', user.role) // Simpan role user di localStorage
-
-    userStore.setRole(user.role) // login
-
-    // ? Arahkan ke halaman sesuai role
-    if (user.role === 'admin') {
-      router.push('/dashboard/admin')
-    } else if (user.role === 'citizen') {
-      router.push(`/dashboard/citizen`)
-    } else if (user.role === 'agency') {
-      localStorage.setItem('companyId', user.company_id) // Simpan id company di localStorage
-      localStorage.setItem('userEmail', user.email) // Simpan email user di localStorage
-
-      router.push('/dashboard/agency/company-details')
-    } else {
-      router.push('/') // Default jika role tidak dikenali
+    const payload = {
+      email: form.email,
+      password: form.password,
     }
 
-    toast.success(`Welcome ${user.full_name}.`, toastOpt.toastOptions)
+    const user = await loginUser(payload)
+    const userData = {
+      user_id: user.user_id,
+      full_name: user.full_name,
+      role: user.role,
+      token: user.token,
+    }
+
+    userStore.setUser(userData)
+    axios.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`
+
+    router.push(`/dashboard/${user.role}`)
+    toast.success(`${user.message}, selamat datang ${user.full_name}.`, toastOpt.toastOptions)
   } catch (error) {
-    toast.error('Something went wrong, please try again.', toastOpt.toastOptions)
+    const message =
+      error.response?.data?.error ||
+      error.response?.data?.errors?.[0]?.msg || // error dari express-validator
+      'Terjadi kesalahan, silakan coba lagi'
+
+    toast.error(`${message}.`, toastOpt.toastOptions)
   } finally {
     // Reset input
-    login.email = ''
-    login.password = ''
-    login.isSubmitting = !login.isSubmitting
+    form.email = ''
+    form.password = ''
+    form.isSubmitting = !form.isSubmitting
   }
 }
 </script>
@@ -77,7 +71,7 @@ const handleSubmit = async () => {
     <div class="container m-auto max-w-lg py-14">
       <div class="bg-white px-6 py-8 mb-4 rounded-xl m-4 md:m-0 border">
         <form @submit.prevent="handleSubmit">
-          <img class="h-20 w-auto m-auto" :src="logo" alt="Vue Logo" />
+          <img class="h-20 w-auto m-auto" src="../assets/img/logo.png" alt="Vue Logo" />
           <h2 class="text-3xl text-center font-bold mb-8">Masuk ke akun Anda</h2>
 
           <div class="mb-2">
@@ -85,7 +79,7 @@ const handleSubmit = async () => {
             <label class="text-gray-700 font-bold mb-4">Alamat Email</label>
             <input
               type="email"
-              v-model="login.email"
+              v-model="form.email"
               class="border w-full py-2 px-3 mb-4 mt-2"
               placeholder="eg. example@mail.com"
               required
@@ -94,22 +88,21 @@ const handleSubmit = async () => {
 
           <div class="mb-4">
             <i class="fa-solid fa-lock me-2"></i>
-            <label class="text-gray-700 font-bold">Password</label>
+            <label class="text-gray-700 font-bold">Kata Sandi</label>
             <input
               type="password"
-              v-model="login.password"
+              v-model="form.password"
               class="border w-full py-2 px-3 mb-4 mt-2"
-              placeholder="Masukan Password"
+              placeholder="Masukan Kata Sandi"
               required
             />
           </div>
 
           <button
             :class="[
-              !login.isSubmitting
-                ? 'hover:bg-[#4970D1] cursor-pointer'
-                : 'hover:bg-[#4970D1] cursor-not-allowed',
-              'bg-[#5988FF]',
+              !form.isSubmitting
+                ? 'bg-[#5988FF] hover:bg-[#4970D1] cursor-pointer '
+                : 'bg-[#4970D1] cursor-not-allowed',
               'text-white',
               'font-medium',
               'py-4',
@@ -117,12 +110,13 @@ const handleSubmit = async () => {
               'w-full',
             ]"
             type="submit"
+            :disabled="form.isSubmitting"
           >
             Masuk
           </button>
 
           <div class="flex justify-between mt-5">
-            <RouterLink to="/forgot-password" class="text-gray-700 hover:text-gray-900"
+            <RouterLink to="/reset-password" class="text-gray-700 hover:text-gray-900"
               >Lupa Kata Sandi?</RouterLink
             >
             <RouterLink to="/register/student" class="text-gray-700 hover:text-gray-900"

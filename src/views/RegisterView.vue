@@ -1,82 +1,79 @@
 <script setup>
-import { computed, reactive, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { reactive, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
 import { useToast } from 'vue-toastification'
 import { useToastOption } from '@/stores/toast.js'
-import router from '@/router'
-import axios from 'axios'
-import logo from '@/assets/img/logo.png'
+import { registerUser } from '@/services/authService.js'
 
-const isActiveLink = (routePath) => {
-  const route = useRoute()
-  return route.path === routePath
-}
-
-const register = reactive({
+const route = useRoute()
+const router = useRouter()
+const form = reactive({
   full_name: '',
   email: '',
   password: '',
   isSubmitting: false,
 })
 
-const route = useRoute()
-const role = computed(() => route.params.role)
 const validRoles = ['student', 'teacher']
+const role = computed(() => route.params.role)
 if (!validRoles.includes(role.value)) {
   router.replace('/404')
 }
+
+const isActiveLink = (routePath) => route.path === routePath
 
 const handleSubmit = async () => {
   const toast = useToast()
   const toastOpt = useToastOption()
 
-  if (!register.full_name || !register.email || !register.password) {
-    return toast.error('All fields are required!', toastOpt.toastOptions)
-  }
-  if (register.password.length < 8) {
-    return toast.error('Password must be at least 8 characters.', toastOpt.toastOptions)
+  if (!form.full_name || !form.email || !form.password) {
+    return toast.error('Semua kolom harus diisi!', toastOpt.toastOptions)
   }
 
-  const newRegister = {
-    ...register,
-    role: role.value,
+  if (form.password.length < 8) {
+    return toast.error('Kata sandi harus minimal 8 karakter.', toastOpt.toastOptions)
   }
 
-  console.log(newRegister.role)
+  form.isSubmitting = !form.isSubmitting
+  // await new Promise((resolve) => setTimeout(resolve, 3000))
 
   try {
-    register.isSubmitting = !register.isSubmitting
-    // await new Promise((resolve) => setTimeout(resolve, 3000))
+    const payload = {
+      full_name: form.full_name,
+      email: form.email,
+      password: form.password,
+      role: role.value,
+    }
 
-    const response = await axios.post(
-      `http://localhost:8000/api/auth/register/${role.value}`,
-      newRegister,
-    )
-    const user = response.data
-
+    const user = await registerUser(role.value, payload)
     if (user.user_id) {
       router.push('/login')
-      toast.success(`Registration successful.`, toastOpt.toastOptions)
+      toast.success(`${user.message}.`, toastOpt.toastOptions)
     }
   } catch (error) {
-    toast.error('Something went wrong, please try again.', toastOpt.toastOptions)
+    const message =
+      error.response?.data?.error ||
+      error.response?.data?.errors?.[0]?.msg || // error dari express-validator
+      'Terjadi kesalahan, silakan coba lagi'
+
+    toast.error(`${message}.`, toastOpt.toastOptions)
   } finally {
     // Reset input
-    register.full_name = ''
-    register.email = ''
-    register.password = ''
-    register.isSubmitting = !register.isSubmitting
+    form.full_name = ''
+    form.email = ''
+    form.password = ''
+    form.isSubmitting = !form.isSubmitting
   }
 }
 </script>
 
 <template>
-  <!-- Citizen Registration -->
   <section class="bg-[#F0F3FF] font-poppins">
     <div class="container m-auto max-w-lg py-14">
       <div class="bg-white px-6 py-8 mb-4 rounded-xl m-4 md:m-0 border">
         <form @submit.prevent="handleSubmit">
-          <img class="h-20 w-auto m-auto" :src="logo" alt="Vue Logo" />
+          <img class="h-20 w-auto m-auto" src="../assets/img/logo.png" alt="Vue Logo" />
           <div v-if="isActiveLink('/register/student')">
             <h2 class="text-3xl text-center font-bold mb-2">Buat Akun Siswa</h2>
             <p class="text-center text-gray-600 mb-8">
@@ -106,7 +103,7 @@ const handleSubmit = async () => {
             <label class="text-gray-700 font-bold mb-2">Nama Lengkap</label>
             <input
               type="text"
-              v-model="register.full_name"
+              v-model="form.full_name"
               class="border w-full py-2 px-3 mb-4 mt-2"
               placeholder="Masukan Nama Lengkap"
               required
@@ -118,7 +115,7 @@ const handleSubmit = async () => {
             <label class="text-gray-700 font-bold mb-4">Alamat Email</label>
             <input
               type="email"
-              v-model="register.email"
+              v-model="form.email"
               class="border w-full py-2 px-3 mb-4 mt-2"
               placeholder="eg. example@mail.com"
               required
@@ -127,22 +124,21 @@ const handleSubmit = async () => {
 
           <div class="mb-4">
             <i class="fa-solid fa-lock me-2"></i>
-            <label class="text-gray-700 font-bold">Password</label>
+            <label class="text-gray-700 font-bold">Kata Sandi</label>
             <input
               type="password"
-              v-model="register.password"
+              v-model="form.password"
               class="border w-full py-2 px-3 mb-4 mt-2"
-              placeholder="Masukan Password"
+              placeholder="Masukan Kata Sandi"
               required
             />
           </div>
 
           <button
             :class="[
-              !register.isSubmitting
-                ? 'hover:bg-[#4970D1] cursor-pointer'
-                : 'hover:bg-[#4970D1] cursor-not-allowed',
-              'bg-[#5988FF]',
+              !form.isSubmitting
+                ? 'bg-[#5988FF] hover:bg-[#4970D1] cursor-pointer '
+                : 'bg-[#4970D1] cursor-not-allowed',
               'text-white',
               'font-medium',
               'py-4',
@@ -150,6 +146,7 @@ const handleSubmit = async () => {
               'w-full',
             ]"
             type="submit"
+            :disabled="form.isSubmitting"
           >
             Buat Akun
           </button>
