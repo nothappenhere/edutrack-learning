@@ -2,7 +2,7 @@ import multer from 'multer'
 import express from 'express'
 const router = express.Router()
 
-import { addMaterials, getMaterials } from '../controllers/materialController.js'
+import { getMaterials, getSingleMaterial, addMaterials, updateMaterials } from '../controllers/materialController.js'
 
 const upload = multer({
   dest: 'backend/temp-uploads/',
@@ -20,13 +20,13 @@ const upload = multer({
 router.get('/materials', getMaterials)
 
 //? Route untuk Detail satu materi
-// router.get('/materials/:id', '???')
+router.get('/materials/:id', getSingleMaterial)
 
 //? Route untuk Upload materi (teacher only)
 router.post('/materials', upload.single('file'), addMaterials)
 
 //? Route untuk Update materi
-// router.put('/materials/:id', '???')
+router.put('/materials/:id', updateMaterials)
 
 //? Route untuk Hapus materi
 // router.delete('/materials/:id', '???')

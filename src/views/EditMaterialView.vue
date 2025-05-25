@@ -1,15 +1,25 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { reactive, onMounted, ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
+
+// import BackButton from '@/components/BackButton.vue'
 
 import { useToast } from 'vue-toastification'
 import { useToastOption } from '@/stores/toast.js'
 import { useUserStore } from '@/stores/user.js'
-import { addNewMaterials } from '@/services/materialService.js'
+import { updateMaterial } from '@/services/materialService.js'
 
 const userStore = useUserStore()
 userStore.loadUser()
 const user_id = userStore.user?.user_id
+
+const route = useRoute()
+const materialId = route.params.id
+const router = useRouter()
+const image = ref(null)
+const imagePreview = ref(null)
+const isPDF = ref(false)
 
 const form = reactive({
   title: '',
@@ -17,16 +27,16 @@ const form = reactive({
   subject: '',
   level: '',
   isSubmitting: false,
+  uploadError: false,
 })
 
-const image = ref(null)
-const imagePreview = ref(null)
-const isPDF = ref(false)
-const isUploading = ref(false)
-const uploadError = ref(false)
-const files = ref([])
+const state = reactive({
+  material: {},
+  isLoading: true,
+})
 
-// const location = ref('')
+const toast = useToast()
+const toastOpt = useToastOption()
 
 function handleFileChange(event) {
   const file = event.target.files[0]
@@ -39,9 +49,6 @@ function handleFileChange(event) {
 }
 
 const handleSubmit = async () => {
-  const toast = useToast()
-  const toastOpt = useToastOption()
-
   if (!user_id) {
     return toast.error('Penggguna belum login!', toastOpt.toastOptions)
   }
@@ -54,28 +61,25 @@ const handleSubmit = async () => {
     return toast.error('Mohon pilih file materi terlebih dahulu!', toastOpt.toastOptions)
   }
 
-  isUploading.value = !isUploading.value
-  uploadError.value = !uploadError.value
-  form.isSubmitting = !form.isSubmitting
+  form.isSubmitting = true
   // await new Promise((resolve) => setTimeout(resolve, 3000))
 
   try {
     const payload = {
       title: form.title,
       description: form.description,
-      user_id: user_id,
+      uploadedBy: user_id,
       subject: form.subject,
       level: form.level,
       file: image.value,
     }
 
-    const material = await addNewMaterials(payload)
-    if (material.material_id) {
-      // router.push('/login')
-      toast.success(`${material.message}.`, toastOpt.toastOptions)
+    const material = await updateMaterial(materialId, payload)
+    console.log(material)
+    if (material.status === 200) {
+      router.push('/dashboard/teacher/materials')
+      toast.success(`${material.data.message}.`, toastOpt.toastOptions)
     }
-
-    // fetchFiles()
   } catch (error) {
     const message =
       error.response?.data?.error ||
@@ -83,37 +87,45 @@ const handleSubmit = async () => {
       'Terjadi kesalahan, silakan coba lagi'
 
     toast.error(`${message}.`, toastOpt.toastOptions)
+    form.uploadError = true
   } finally {
-    // Reset input
-    form.title = ''
-    form.description = ''
-    form.subject = ''
-    form.level = ''
     image.value = null
     imagePreview.value = null
-    isUploading.value = false
+    form.isSubmitting = false
   }
 }
 
-const fetchFiles = async () => {
+onMounted(async () => {
   try {
-    const response = await axios.get('http://localhost:8000/api/materials')
-    files.value = response.data
-  } catch (error) {
-    console.error('Gagal mengambil daftar file:', error)
-  }
-}
+    const response = await axios.get(`http://localhost:8000/api/materials/${materialId}`)
 
-onMounted(fetchFiles)
+    state.material = response.data.material
+    state.isLoading = false
+
+    form.title = state.material.title
+    form.description = state.material.description
+    form.subject = state.material.subject
+    form.level = state.material.level
+  } catch (error) {
+    const message =
+      error.response?.data?.error ||
+      error.response?.data?.errors?.[0]?.msg ||
+      'Terjadi kesalahan saat mengambil data materi. Silakan coba kembali.'
+
+    toast.error(message, toastOpt.toastOptions)
+  }
+})
 </script>
 
 <template>
+  <!-- <BackButton :id="jobId" /> -->
+
   <section class="bg-[#F0F3FF] font-poppins">
     <div class="container m-auto max-w-lg py-14">
       <div class="bg-white px-6 py-8 mb-4 rounded-xl m-4 md:m-0 border">
         <form @submit.prevent="handleSubmit">
           <img class="h-20 w-auto m-auto" src="../assets/img/logo.png" alt="Vue Logo" />
-          <h2 class="text-3xl text-center font-bold mb-8">Buat Materi Baru</h2>
+          <h2 class="text-3xl text-center font-bold mb-8">Ubah Materi</h2>
 
           <!-- Judul Materi -->
           <div class="mb-3">
@@ -202,7 +214,7 @@ onMounted(fetchFiles)
                 <iframe
                   v-if="isPDF"
                   :src="imagePreview"
-                  class="w-full max-w-2xl h-80 border rounded"
+                  class="w-full max-w-3xl h-80 border rounded"
                 ></iframe>
 
                 <!-- Preview Gambar -->
@@ -210,7 +222,7 @@ onMounted(fetchFiles)
                   v-else
                   :src="imagePreview"
                   alt="Preview"
-                  class="max-w-sm mx-auto rounded shadow border"
+                  class="max-w-sm mx-auto border rounded"
                 />
               </div>
 
@@ -228,7 +240,7 @@ onMounted(fetchFiles)
           <button
             :class="[
               !form.isSubmitting
-                ? 'bg-[#5988FF] hover:bg-[#4970D1] cursor-pointer '
+                ? 'bg-[#5988FF] hover:bg-[#4970D1] cursor-pointer'
                 : 'bg-[#4970D1] cursor-not-allowed',
               'text-white',
               'font-medium',
@@ -239,8 +251,34 @@ onMounted(fetchFiles)
             type="submit"
             :disabled="form.isSubmitting"
           >
-            Simpan
+            {{ form.isSubmitting ? 'Menyimpan materi...' : 'Simpan' }}
           </button>
+
+          <!-- Alert Error Upload -->
+          <div
+            v-if="form.uploadError"
+            role="alert"
+            class="border-s-4 border-e-4 border-red-700 bg-red-100 p-4 mt-4"
+          >
+            <div class="flex items-center gap-2 text-red-700">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                class="size-5"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+
+              <strong class="font-medium"> Terjadi kesalahan </strong>
+            </div>
+
+            <p class="mt-2 text-sm text-red-700">Gagal memperbarui materi. Silakan coba lagi!</p>
+          </div>
         </form>
       </div>
     </div>

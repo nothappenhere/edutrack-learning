@@ -52,9 +52,33 @@ const logout = () => {
             <ul v-if="role === 'teacher'" class="flex items-center gap-10 text-sm">
               <li>
                 <RouterLink
+                  v-if="route.name === 'List-Material'"
                   class="text-gray-700 transition hover:text-black"
-                  :to="`${route.fullPath}/add-material`"
-                  >Tambah Materi</RouterLink
+                  :to="`${route.path}`"
+                  >Daftar Materi</RouterLink
+                >
+
+                <RouterLink
+                  v-else
+                  class="text-gray-700 transition hover:text-black"
+                  to="/dashboard/teacher/materials"
+                  >Daftar Materi</RouterLink
+                >
+              </li>
+
+              <li>
+                <RouterLink
+                  v-if="route.name === 'Add-Material'"
+                  class="text-gray-700 transition hover:text-black"
+                  :to="`${route.path}`"
+                  >Buat Materi</RouterLink
+                >
+
+                <RouterLink
+                  v-else
+                  class="text-gray-700 transition hover:text-black"
+                  to="/dashboard/teacher/materials/add"
+                  >Buat Materi</RouterLink
                 >
               </li>
             </ul>
@@ -63,7 +87,7 @@ const logout = () => {
             <ul v-else class="flex items-center gap-10 text-sm">
               <li>
                 <a
-                  v-if="useRoute().path === '/'"
+                  v-if="route.path === '/'"
                   class="text-gray-700 transition hover:text-black"
                   href="#"
                   >Beranda</a
@@ -71,10 +95,10 @@ const logout = () => {
 
                 <RouterLink
                   v-else-if="
-                    useRoute().path === '/login' ||
-                    useRoute().path === '/reset-password' ||
-                    useRoute().path === '/register/student' ||
-                    useRoute().path === '/register/teacher'
+                    route.path === '/login' ||
+                    route.path === '/reset-password' ||
+                    route.path === '/register/student' ||
+                    route.path === '/register/teacher'
                   "
                   class="text-gray-700 transition hover:text-black"
                   to="/#"
@@ -84,7 +108,7 @@ const logout = () => {
 
               <li>
                 <a
-                  v-if="useRoute().path === '/'"
+                  v-if="route.path === '/'"
                   class="text-gray-700 transition hover:text-black"
                   href="#timeline"
                   >Alur Pengguna</a
@@ -92,10 +116,10 @@ const logout = () => {
 
                 <RouterLink
                   v-else-if="
-                    useRoute().path === '/login' ||
-                    useRoute().path === '/reset-password' ||
-                    useRoute().path === '/register/student' ||
-                    useRoute().path === '/register/teacher'
+                    route.path === '/login' ||
+                    route.path === '/reset-password' ||
+                    route.path === '/register/student' ||
+                    route.path === '/register/teacher'
                   "
                   class="text-gray-700 transition hover:text-black"
                   to="/#timeline"
@@ -105,7 +129,7 @@ const logout = () => {
 
               <li>
                 <a
-                  v-if="useRoute().path === '/'"
+                  v-if="route.path === '/'"
                   class="text-gray-700 transition hover:text-black"
                   href="#material"
                   >Materi</a
@@ -113,10 +137,10 @@ const logout = () => {
 
                 <RouterLink
                   v-else-if="
-                    useRoute().path === '/login' ||
-                    useRoute().path === '/reset-password' ||
-                    useRoute().path === '/register/student' ||
-                    useRoute().path === '/register/teacher'
+                    route.path === '/login' ||
+                    route.path === '/reset-password' ||
+                    route.path === '/register/student' ||
+                    route.path === '/register/teacher'
                   "
                   class="text-gray-700 transition hover:text-black"
                   to="/#material"
@@ -126,7 +150,7 @@ const logout = () => {
 
               <li>
                 <a
-                  v-if="useRoute().path === '/'"
+                  v-if="route.path === '/'"
                   class="text-gray-700 transition hover:text-black"
                   href="#feedback"
                   >Feedback</a
@@ -134,10 +158,10 @@ const logout = () => {
 
                 <RouterLink
                   v-else-if="
-                    useRoute().path === '/login' ||
-                    useRoute().path === '/reset-password' ||
-                    useRoute().path === '/register/student' ||
-                    useRoute().path === '/register/teacher'
+                    route.path === '/login' ||
+                    route.path === '/reset-password' ||
+                    route.path === '/register/student' ||
+                    route.path === '/register/teacher'
                   "
                   class="text-gray-700 transition hover:text-black"
                   to="/#feedback"

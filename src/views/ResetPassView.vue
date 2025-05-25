@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 import { reactive } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
@@ -22,28 +22,24 @@ const checkEmail = async () => {
     return toast.error('Semua kolom harus diisi!', toastOpt.toastOptions)
   }
 
-  form.isSubmitting = !form.isSubmitting
-  // await new Promise((resolve) => setTimeout(resolve, 3000))
+  form.isSubmitting = true
 
   try {
-    const payload = {
-      email: form.email,
-    }
-
-    const email = checkEmailExist(payload)
+    const email = await checkEmailExist({ email: form.email })
     if (email.exist) {
       toast.success(`${email.message}.`, toastOpt.toastOptions)
-      form.isEmailValid = !form.isEmailValid
+      form.isEmailValid = true
     }
   } catch (error) {
     const message =
       error.response?.data?.error ||
-      error.response?.data?.errors?.[0]?.msg || // error dari express-validator
+      error.response?.data?.errors?.[0]?.msg ||
       'Terjadi kesalahan, silakan coba lagi'
 
     toast.error(`${message}.`, toastOpt.toastOptions)
+    form.isEmailValid = false
   } finally {
-    form.isSubmitting = !form.isSubmitting
+    form.isSubmitting = false
   }
 }
 
@@ -59,8 +55,7 @@ const handleSubmit = async () => {
     return toast.error('Kata sandi baru harus minimal 8 karakter.', toastOpt.toastOptions)
   }
 
-  form.isSubmitting = !form.isSubmitting
-  // await new Promise((resolve) => setTimeout(resolve, 3000))
+  form.isSubmitting = true
 
   try {
     const payload = {
@@ -68,23 +63,20 @@ const handleSubmit = async () => {
       password: form.password,
     }
 
-    const reset = resetPassword(payload)
+    const reset = await resetPassword(payload)
     if (reset.status === 200) {
       router.push('/login')
-      toast.success(`${reset.message}.`, toastOpt.toastOptions)
+      toast.success(`${reset.data.message}.`, toastOpt.toastOptions)
     }
   } catch (error) {
     const message =
       error.response?.data?.error ||
-      error.response?.data?.errors?.[0]?.msg || // error dari express-validator
+      error.response?.data?.errors?.[0]?.msg ||
       'Terjadi kesalahan, silakan coba lagi'
 
     toast.error(`${message}.`, toastOpt.toastOptions)
   } finally {
-    // Reset input
-    form.email = ''
-    form.password = ''
-    form.isSubmitting = !form.isSubmitting
+    form.isSubmitting = false
   }
 }
 </script>
@@ -135,7 +127,7 @@ const handleSubmit = async () => {
               'px-4',
               'w-full',
             ]"
-            type="submit"
+            type="button"
             :disabled="form.isSubmitting"
           >
             Periksa Email

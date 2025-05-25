@@ -34,6 +34,7 @@ export const registerUser = async (req, res, next) => {
       user_id: result.rows[0].id,
     })
   } catch (error) {
+    res.status(500).json({ error: 'Registration error' })
     console.error('Registration error:', error)
     next(error)
   }
@@ -86,6 +87,7 @@ export const loginUser = async (req, res, next) => {
       token,
     })
   } catch (error) {
+    res.status(500).json({ error: 'Login error' })
     console.error('Login error:', error)
     next(error)
   }
@@ -115,7 +117,8 @@ export const checkEmailExist = async (req, res, next) => {
       exist: true,
     })
   } catch (error) {
-    console.error('Email-exist-check error:', error)
+    res.status(500).json({ error: 'Email-check error' })
+    console.error('Email-check error:', error)
     next(error)
   }
 }
@@ -140,11 +143,12 @@ export const resetPasswordUser = async (req, res, next) => {
 
     // Periksa apakah email sudah terdaftar
     if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Alamat email tidak ditemukan.' })
+      return res.status(404).json({ error: 'Alamat email tidak ditemukan' })
     }
 
     res.status(200).json({ message: 'Berhasil mengatur ulang kata sandi' })
   } catch (error) {
+    res.status(500).json({ error: 'Password-reset error' })
     console.error('Password-reset error:', error)
     next(error)
   }
@@ -154,18 +158,35 @@ export const resetPasswordUser = async (req, res, next) => {
  * @desc Login user based on their role
  * @route POST /auth/me
  */
-export const getCurrentUser = async (req, res) => {
+export const getCurrentUser = async (req, res, next) => {
+  const { user_id } = req.body
+
   try {
-    const { userId } = req.user
+    // Query user berdasarkan email
+    const result = await db.query(
+      'SELECT full_name, email, password_hash, role FROM users WHERE id = $1',
+      [user_id],
+    )
+    const selectResult = result.rows
 
-    const [rows] = await db
-      .promise()
-      .query('SELECT user_id, full_name, email, role FROM users WHERE user_id = ?', [userId])
+    if (selectResult.length === 0) {
+      return res.status(404).json({
+        error: 'Pengguna tidak ditemukan',
+      })
+    }
 
-    if (rows.length === 0) return res.status(404).json({ error: 'User not found.' })
+    const user = selectResult[0]
 
-    res.status(200).json({ user: rows[0] })
+    res.status(200).json({
+      message: 'Pengguna ditemukan dan sudah terdaftar',
+      full_name: user.full_name,
+      email: user.email,
+      password: user.password,
+      role: user.role,
+    })
   } catch (error) {
-    res.status(500).json({ error: 'Failed to retrieve user.' })
+    res.status(500).json({ error: 'Failed to retrieve user' })
+    console.error('Failed to retrieve user:', error)
+    next(error)
   }
 }

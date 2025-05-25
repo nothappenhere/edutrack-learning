@@ -1,17 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { computed } from 'vue'
+
 import { useToast } from 'vue-toastification'
-
-import { useUserStore } from '@/stores/user.js'
 import { useToastOption } from '@/stores/toast.js'
+import { useUserStore } from '@/stores/user.js'
 
-import HomeView from '../views/HomeView.vue'
+import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import ResetPassView from '@/views/ResetPassView.vue'
 
 import DashboardView from '@/views/DashboardView.vue'
-import AddProduct from '../views/AddProductView.vue'
+import ListMaterialView from '@/views/ListMaterialView.vue'
+import AddMaterialView from '@/views/AddMaterialView.vue'
+import EditMaterialView from '@/views/EditMaterialView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -43,9 +44,21 @@ const router = createRouter({
       meta: { requiresAuth: true },
       children: [
         {
-          path: 'add-material',
+          path: 'materials',
+          name: 'List-Material',
+          component: ListMaterialView,
+          meta: { requiresRole: 'teacher' },
+        },
+        {
+          path: 'materials/add',
           name: 'Add-Material',
-          component: AddProduct,
+          component: AddMaterialView,
+          meta: { requiresRole: 'teacher' },
+        },
+        {
+          path: 'materials/edit/:id',
+          name: 'Edit-Material',
+          component: EditMaterialView,
           meta: { requiresRole: 'teacher' },
         },
       ],

@@ -35,7 +35,7 @@ const handleSubmit = async () => {
     return toast.error('Kata sandi harus minimal 8 karakter.', toastOpt.toastOptions)
   }
 
-  form.isSubmitting = !form.isSubmitting
+  form.isSubmitting = true
   // await new Promise((resolve) => setTimeout(resolve, 3000))
 
   try {
@@ -48,7 +48,7 @@ const handleSubmit = async () => {
 
     const user = await registerUser(role.value, payload)
     if (user.user_id) {
-      router.push('/login')
+      router.push(`/login`)
       toast.success(`${user.message}.`, toastOpt.toastOptions)
     }
   } catch (error) {
@@ -59,11 +59,7 @@ const handleSubmit = async () => {
 
     toast.error(`${message}.`, toastOpt.toastOptions)
   } finally {
-    // Reset input
-    form.full_name = ''
-    form.email = ''
-    form.password = ''
-    form.isSubmitting = !form.isSubmitting
+    form.isSubmitting = false
   }
 }
 </script>
