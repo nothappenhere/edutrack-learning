@@ -17,6 +17,7 @@ export const checkEmailExist = async (payload) => {
   return response.data
 }
 
-export const resetPassword = async (payload) => {
-  return await axios.put(`${API_BASE}/reset-password`, payload)
+export const resetPasswordUser = async (payload) => {
+  const response = await axios.put(`${API_BASE}/reset-password`, payload)
+  return response.data
 }

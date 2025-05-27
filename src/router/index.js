@@ -14,6 +14,10 @@ import ListMaterialView from '@/views/ListMaterialView.vue'
 import AddMaterialView from '@/views/AddMaterialView.vue'
 import EditMaterialView from '@/views/EditMaterialView.vue'
 
+import ListQuizzesView from '@/views/ListQuizzesView.vue'
+// import AddQuizzesView from '@/views/AddQuizzesView.vue'
+// import EditQuizzesView from '@/views/EditQuizzesView.vue'
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -61,6 +65,24 @@ const router = createRouter({
           component: EditMaterialView,
           meta: { requiresRole: 'teacher' },
         },
+        {
+          path: 'quizzes',
+          name: 'List-Quizzes',
+          component: ListQuizzesView,
+          meta: { requiresRole: 'teacher' },
+        },
+        // {
+        //   path: 'quizzes/add',
+        //   name: 'Add-Quizzes',
+        //   component: AddQuizzesView,
+        //   meta: { requiresRole: 'teacher' },
+        // },
+        // {
+        //   path: 'quizzes/edit/:id',
+        //   name: 'Edit-Quizzes',
+        //   component: EditQuizzesView,
+        //   meta: { requiresRole: 'teacher' },
+        // },
       ],
     },
     {

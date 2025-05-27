@@ -1,12 +1,12 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
 
 import { useToast } from 'vue-toastification'
 import { useToastOption } from '@/stores/toast.js'
 import { useUserStore } from '@/stores/user.js'
 import { addMaterial } from '@/services/materialService.js'
+import { errorMessage } from '@/services/errorService.js'
 
 const userStore = useUserStore()
 userStore.loadUser()
@@ -22,20 +22,17 @@ const form = reactive({
 })
 
 const router = useRouter()
-const image = ref(null)
-const imagePreview = ref(null)
+const file = ref(null)
+const filePreview = ref(null)
 const isPDF = ref(false)
-// const files = ref([])
-
-// const location = ref('')
 
 function handleFileChange(event) {
-  const file = event.target.files[0]
-  if (file) {
-    image.value = file
-    const fileUrl = URL.createObjectURL(file)
-    imagePreview.value = fileUrl
-    isPDF.value = file.type === 'application/pdf'
+  const targetFile = event.target.files[0]
+  if (targetFile) {
+    file.value = targetFile
+    const fileUrl = URL.createObjectURL(targetFile)
+    filePreview.value = fileUrl
+    isPDF.value = targetFile.type === 'application/pdf'
   }
 }
 
@@ -51,7 +48,7 @@ const handleSubmit = async () => {
     return toast.error('Semua kolom harus diisi!', toastOpt.toastOptions)
   }
 
-  if (!image.value) {
+  if (!file.value) {
     return toast.error('Mohon pilih file materi terlebih dahulu!', toastOpt.toastOptions)
   }
 
@@ -65,41 +62,24 @@ const handleSubmit = async () => {
       uploadedBy: user_id,
       subject: form.subject,
       level: form.level,
-      file: image.value,
+      file: file.value,
     }
 
     const material = await addMaterial(payload)
+
     if (material.material_id) {
       router.push('/dashboard/teacher/materials')
       toast.success(`${material.message}.`, toastOpt.toastOptions)
     }
-
-    // fetchFiles()
   } catch (error) {
-    const message =
-      error.response?.data?.error ||
-      error.response?.data?.errors?.[0]?.msg || // error dari express-validator
-      'Terjadi kesalahan, silakan coba lagi'
-
-    toast.error(`${message}.`, toastOpt.toastOptions)
+    errorMessage(error)
     form.uploadError = true
   } finally {
-    image.value = null
-    imagePreview.value = null
+    file.value = null
+    filePreview.value = null
     form.isSubmitting = false
   }
 }
-
-// const fetchFiles = async () => {
-//   try {
-//     const response = await axios.get('http://localhost:8000/api/materials')
-//     files.value = response.data
-//   } catch (error) {
-//     console.error('Gagal mengambil daftar file:', error)
-//   }
-// }
-
-// onMounted(fetchFiles)
 </script>
 
 <template>
@@ -192,18 +172,18 @@ const handleSubmit = async () => {
               </span>
 
               <!-- Preview PDF atau Gambar -->
-              <div v-if="imagePreview" class="mt-4 text-center">
+              <div v-if="filePreview" class="mt-4 text-center">
                 <!-- Preview PDF -->
                 <iframe
                   v-if="isPDF"
-                  :src="imagePreview"
+                  :src="filePreview"
                   class="w-full max-w-3xl h-80 border rounded"
                 ></iframe>
 
                 <!-- Preview Gambar -->
                 <img
                   v-else
-                  :src="imagePreview"
+                  :src="filePreview"
                   alt="Preview"
                   class="max-w-sm mx-auto border rounded"
                 />

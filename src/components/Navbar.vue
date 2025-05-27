@@ -31,7 +31,7 @@ const logout = () => {
         <div class="md:flex md:items-center md:gap-12">
           <a
             class="flex flex-1 items-center justify-center md:items-stretch md:justify-start text-[#5988FF]"
-            href="/#"
+            href="/"
           >
             <span class="sr-only">Home</span>
             <svg class="h-8" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -79,6 +79,38 @@ const logout = () => {
                   class="text-gray-700 transition hover:text-black"
                   to="/dashboard/teacher/materials/add"
                   >Buat Materi</RouterLink
+                >
+              </li>
+
+              <li>
+                <RouterLink
+                  v-if="route.name === 'List-Quizzes'"
+                  class="text-gray-700 transition hover:text-black"
+                  :to="`${route.path}`"
+                  >Daftar Quiz</RouterLink
+                >
+
+                <RouterLink
+                  v-else
+                  class="text-gray-700 transition hover:text-black"
+                  to="/dashboard/teacher/quizzes"
+                  >Daftar Quiz</RouterLink
+                >
+              </li>
+
+              <li>
+                <RouterLink
+                  v-if="route.name === 'Add-Quizzes'"
+                  class="text-gray-700 transition hover:text-black"
+                  :to="`${route.path}`"
+                  >Buat Quiz</RouterLink
+                >
+
+                <RouterLink
+                  v-else
+                  class="text-gray-700 transition hover:text-black"
+                  to="/dashboard/teacher/quizzes/add"
+                  >Buat Quiz</RouterLink
                 >
               </li>
             </ul>

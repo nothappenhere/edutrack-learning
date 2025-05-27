@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import { useToastOption } from '@/stores/toast.js'
 import { registerUser } from '@/services/authService.js'
+import { errorMessage } from '@/services/errorService.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -31,10 +32,6 @@ const handleSubmit = async () => {
     return toast.error('Semua kolom harus diisi!', toastOpt.toastOptions)
   }
 
-  if (form.password.length < 8) {
-    return toast.error('Kata sandi harus minimal 8 karakter.', toastOpt.toastOptions)
-  }
-
   form.isSubmitting = true
   // await new Promise((resolve) => setTimeout(resolve, 3000))
 
@@ -52,12 +49,7 @@ const handleSubmit = async () => {
       toast.success(`${user.message}.`, toastOpt.toastOptions)
     }
   } catch (error) {
-    const message =
-      error.response?.data?.error ||
-      error.response?.data?.errors?.[0]?.msg || // error dari express-validator
-      'Terjadi kesalahan, silakan coba lagi'
-
-    toast.error(`${message}.`, toastOpt.toastOptions)
+    errorMessage(error)
   } finally {
     form.isSubmitting = false
   }

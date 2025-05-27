@@ -20,10 +20,14 @@ export const validateRegister = [
     .withMessage('Nama Lengkap harus minimal 3 karakter'),
   body('email').notEmpty().isEmail().withMessage('Format email tidak valid'),
   body('password')
-    .notEmpty()
-    .withMessage('Kata sandi harus diisi')
-    .isLength({ min: 8 })
-    .withMessage('Kata sandi harus minimal 8 karakter'),
+    .isStrongPassword({
+      minLength: 8,
+      minNumbers: 1,
+      minLowercase: 1,
+      minUppercase: 1,
+      minSymbols: 1,
+    })
+    .withMessage('Kata sandi harus mengandung huruf besar, angka, dan minimal 8 karakter'),
   handleValidationErrors,
 ]
 
@@ -31,10 +35,14 @@ export const validateRegister = [
 export const validateLogin = [
   body('email').notEmpty().isEmail().withMessage('Format email tidak valid'),
   body('password')
-    .notEmpty()
-    .withMessage('Kata sandi harus diisi')
-    .isLength({ min: 8 })
-    .withMessage('Kata sandi harus minimal 8 karakter'),
+    .isStrongPassword({
+      minLength: 8,
+      minNumbers: 1,
+      minLowercase: 1,
+      minUppercase: 1,
+      minSymbols: 1,
+    })
+    .withMessage('Kata sandi harus mengandung huruf besar, angka, dan minimal 8 karakter'),
   handleValidationErrors,
 ]
 
@@ -48,9 +56,13 @@ export const validateEmailExist = [
 export const validateResetPassword = [
   body('email').notEmpty().isEmail().withMessage('Format email tidak valid'),
   body('password')
-    .notEmpty()
-    .withMessage('Kata sandi harus diisi')
-    .isLength({ min: 8 })
-    .withMessage('Kata sandi harus minimal 8 karakter'),
+    .isStrongPassword({
+      minLength: 8,
+      minNumbers: 1,
+      minLowercase: 1,
+      minUppercase: 1,
+      minSymbols: 1,
+    })
+    .withMessage('Kata sandi harus mengandung huruf besar, angka, simbol, dan minimal 8 karakter'),
   handleValidationErrors,
 ]

@@ -11,12 +11,17 @@ export const registerUser = async (req, res, next) => {
   const { full_name, email, password } = req.body
 
   try {
+    const allowedRoles = ['student', 'teacher', 'admin']
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({ error: 'Role tidak valid' })
+    }
+
     // Periksa apakah email sudah terdaftar
     const checkEmail = await db.query('SELECT email FROM users WHERE email = $1', [email])
     const existingUser = checkEmail.rows
 
     if (existingUser.length > 0) {
-      return res.status(400).json({ error: 'Alamat email yang digunakan telah terdaftar' })
+      return res.status(409).json({ error: 'Alamat email yang digunakan telah terdaftar' })
     }
 
     // Hash password sebelum disimpan ke database
@@ -34,7 +39,7 @@ export const registerUser = async (req, res, next) => {
       user_id: result.rows[0].id,
     })
   } catch (error) {
-    res.status(500).json({ error: 'Registration error' })
+    // res.status(500).json({ error: 'Registration error' })
     console.error('Registration error:', error)
     next(error)
   }
@@ -56,8 +61,8 @@ export const loginUser = async (req, res, next) => {
     const selectResult = result.rows
 
     if (selectResult.length === 0) {
-      return res.status(401).json({
-        error: 'Kredensial tidak valid, periksa email atau kata sandi Anda',
+      return res.status(403).json({
+        error: 'Email atau kata sandi salah',
       })
     }
 
@@ -66,12 +71,16 @@ export const loginUser = async (req, res, next) => {
     // Periksa kecocokan password
     const isMatch = await bcrypt.compare(password, user.password_hash)
     if (!isMatch) {
-      return res.status(401).json({
-        error: 'Kredensial tidak valid, periksa email atau kata sandi Anda',
+      return res.status(403).json({
+        error: 'Email atau kata sandi salah',
       })
     }
 
     // Generate token JWT
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET is not defined in environment')
+    }
+
     const token = jwt.sign(
       { user_id: user.id, full_name: user.full_name, email: user.email, role: user.role },
       process.env.JWT_SECRET,
@@ -87,7 +96,7 @@ export const loginUser = async (req, res, next) => {
       token,
     })
   } catch (error) {
-    res.status(500).json({ error: 'Login error' })
+    // res.status(500).json({ error: 'Login error' })
     console.error('Login error:', error)
     next(error)
   }
@@ -117,7 +126,7 @@ export const checkEmailExist = async (req, res, next) => {
       exist: true,
     })
   } catch (error) {
-    res.status(500).json({ error: 'Email-check error' })
+    // res.status(500).json({ error: 'Email-check error' })
     console.error('Email-check error:', error)
     next(error)
   }
@@ -125,7 +134,7 @@ export const checkEmailExist = async (req, res, next) => {
 
 /**
  * @desc Reset the user's password
- * @route POST /api/auth/reset-password
+ * @route PUT /api/auth/reset-password
  */
 export const resetPasswordUser = async (req, res, next) => {
   const { email, password } = req.body
@@ -148,7 +157,7 @@ export const resetPasswordUser = async (req, res, next) => {
 
     res.status(200).json({ message: 'Berhasil mengatur ulang kata sandi' })
   } catch (error) {
-    res.status(500).json({ error: 'Password-reset error' })
+    // res.status(500).json({ error: 'Password-reset error' })
     console.error('Password-reset error:', error)
     next(error)
   }

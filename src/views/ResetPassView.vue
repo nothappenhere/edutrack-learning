@@ -4,7 +4,8 @@ import { RouterLink, useRouter } from 'vue-router'
 
 import { useToast } from 'vue-toastification'
 import { useToastOption } from '@/stores/toast.js'
-import { checkEmailExist, resetPassword } from '@/services/authService.js'
+import { checkEmailExist, resetPasswordUser } from '@/services/authService.js'
+import { errorMessage } from '@/services/errorService.js'
 
 const router = useRouter()
 const form = reactive({
@@ -31,12 +32,7 @@ const checkEmail = async () => {
       form.isEmailValid = true
     }
   } catch (error) {
-    const message =
-      error.response?.data?.error ||
-      error.response?.data?.errors?.[0]?.msg ||
-      'Terjadi kesalahan, silakan coba lagi'
-
-    toast.error(`${message}.`, toastOpt.toastOptions)
+    errorMessage(error)
     form.isEmailValid = false
   } finally {
     form.isSubmitting = false
@@ -51,11 +47,8 @@ const handleSubmit = async () => {
     return toast.error('Semua kolom harus diisi!', toastOpt.toastOptions)
   }
 
-  if (form.password.length < 8) {
-    return toast.error('Kata sandi baru harus minimal 8 karakter.', toastOpt.toastOptions)
-  }
-
   form.isSubmitting = true
+  // await new Promise((resolve) => setTimeout(resolve, 3000))
 
   try {
     const payload = {
@@ -63,18 +56,12 @@ const handleSubmit = async () => {
       password: form.password,
     }
 
-    const reset = await resetPassword(payload)
-    if (reset.status === 200) {
-      router.push('/login')
-      toast.success(`${reset.data.message}.`, toastOpt.toastOptions)
-    }
-  } catch (error) {
-    const message =
-      error.response?.data?.error ||
-      error.response?.data?.errors?.[0]?.msg ||
-      'Terjadi kesalahan, silakan coba lagi'
+    const reset = await resetPasswordUser(payload)
 
-    toast.error(`${message}.`, toastOpt.toastOptions)
+    router.push('/login')
+    toast.success(`${reset.message}.`, toastOpt.toastOptions)
+  } catch (error) {
+    errorMessage(error)
   } finally {
     form.isSubmitting = false
   }

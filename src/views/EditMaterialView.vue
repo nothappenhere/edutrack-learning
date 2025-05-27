@@ -1,14 +1,12 @@
 <script setup>
 import { reactive, onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import axios from 'axios'
-
-// import BackButton from '@/components/BackButton.vue'
 
 import { useToast } from 'vue-toastification'
 import { useToastOption } from '@/stores/toast.js'
 import { useUserStore } from '@/stores/user.js'
-import { updateMaterial } from '@/services/materialService.js'
+import { getSingleMaterial, updateMaterial, deleteMaterial } from '@/services/materialService.js'
+import { errorMessage } from '@/services/errorService.js'
 
 const userStore = useUserStore()
 userStore.loadUser()
@@ -26,6 +24,7 @@ const form = reactive({
   description: '',
   subject: '',
   level: '',
+  file: '',
   isSubmitting: false,
   uploadError: false,
 })
@@ -33,7 +32,13 @@ const form = reactive({
 const state = reactive({
   material: {},
   isLoading: true,
+  isClosed: false,
+  isDelete: false,
 })
+
+const toggleButton = () => {
+  state.isClosed = !state.isClosed
+}
 
 const toast = useToast()
 const toastOpt = useToastOption()
@@ -65,28 +70,20 @@ const handleSubmit = async () => {
   // await new Promise((resolve) => setTimeout(resolve, 3000))
 
   try {
-    const payload = {
-      title: form.title,
-      description: form.description,
-      uploadedBy: user_id,
-      subject: form.subject,
-      level: form.level,
-      file: image.value,
-    }
+    const formData = new FormData()
+    formData.append('title', form.title)
+    formData.append('description', form.description)
+    formData.append('uploadedBy', user_id)
+    formData.append('subject', form.subject)
+    formData.append('level', form.level)
+    formData.append('file', image.value)
 
-    const material = await updateMaterial(materialId, payload)
-    console.log(material)
-    if (material.status === 200) {
-      router.push('/dashboard/teacher/materials')
-      toast.success(`${material.data.message}.`, toastOpt.toastOptions)
-    }
+    const response = await updateMaterial(materialId, formData)
+
+    router.push('/dashboard/teacher/materials')
+    toast.success(`${response.message}.`, toastOpt.toastOptions)
   } catch (error) {
-    const message =
-      error.response?.data?.error ||
-      error.response?.data?.errors?.[0]?.msg || // error dari express-validator
-      'Terjadi kesalahan, silakan coba lagi'
-
-    toast.error(`${message}.`, toastOpt.toastOptions)
+    errorMessage(error)
     form.uploadError = true
   } finally {
     image.value = null
@@ -95,37 +92,117 @@ const handleSubmit = async () => {
   }
 }
 
+const confirmDeleteMaterial = async () => {
+  try {
+    const response = await deleteMaterial(materialId)
+
+    router.push('/dashboard/teacher/materials')
+    toast.success(`${response.message}.`, toastOpt.toastOptions)
+  } catch (error) {
+    errorMessage(error)
+  }
+}
+
 onMounted(async () => {
   try {
-    const response = await axios.get(`http://localhost:8000/api/materials/${materialId}`)
+    const response = await getSingleMaterial(materialId)
 
-    state.material = response.data.material
+    state.material = response.material
     state.isLoading = false
 
     form.title = state.material.title
     form.description = state.material.description
     form.subject = state.material.subject
     form.level = state.material.level
-  } catch (error) {
-    const message =
-      error.response?.data?.error ||
-      error.response?.data?.errors?.[0]?.msg ||
-      'Terjadi kesalahan saat mengambil data materi. Silakan coba kembali.'
 
-    toast.error(message, toastOpt.toastOptions)
+    imagePreview.value = state.material.file_url
+    isPDF.value = state.material.file_url?.toLowerCase().endsWith('.pdf')
+  } catch (error) {
+    errorMessage(error)
   }
 })
 </script>
 
 <template>
-  <!-- <BackButton :id="jobId" /> -->
-
   <section class="bg-[#F0F3FF] font-poppins">
     <div class="container m-auto max-w-lg py-14">
       <div class="bg-white px-6 py-8 mb-4 rounded-xl m-4 md:m-0 border">
         <form @submit.prevent="handleSubmit">
+          <div class="flex justify-between items-center mb-5">
+            <div>
+              <RouterLink
+                to="/dashboard/teacher/materials"
+                class="text-gray-700 hover:text-gray-900"
+              >
+                <i class="fa fa-solid fa-arrow-left me-2"></i>
+                Kembali ke Daftar Materi
+              </RouterLink>
+            </div>
+
+            <div>
+              <button @click="toggleButton" type="button" class="text-gray-700 hover:text-gray-900">
+                Hapus Materi
+                <i class="fa fa-solid fa-trash ms-2"></i>
+              </button>
+            </div>
+          </div>
+
+          <div
+            role="alert"
+            :class="[state.isClosed ? '' : 'hidden']"
+            class="rounded-md border border-gray-300 bg-[#FF4646] p-4 shadow-sm"
+          >
+            <div class="flex items-start ms-3">
+              <div class="flex-1">
+                <strong class="font-medium text-white"> Hapus Materi </strong>
+
+                <p class="mt-0.5 text-sm text-white">
+                  Apakah Anda yakin ingin menghapus materi ini?
+                </p>
+
+                <div class="mt-3 flex items-center gap-2">
+                  <button
+                    @click="confirmDeleteMaterial"
+                    type="button"
+                    class="rounded border border-gray-300 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-colors hover:text-[#E5EDFF] hover:border-[#E5EDFF] cursor-pointer"
+                  >
+                    Ya
+                  </button>
+
+                  <button
+                    @click="toggleButton"
+                    type="button"
+                    class="rounded border border-transparent px-3 py-1.5 text-sm font-medium text-white transition-colors hover:text-gray-200 cursor-pointer"
+                  >
+                    Tidak
+                  </button>
+                </div>
+              </div>
+
+              <button
+                @click="toggleButton"
+                class="-m-3 rounded-full p-1.5 text-white transition-colors hover:bg-gray-50 hover:text-black"
+                type="button"
+                aria-label="Dismiss alert"
+              >
+                <span class="sr-only">Dismiss popup</span>
+
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="size-5"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
           <img class="h-20 w-auto m-auto" src="../assets/img/logo.png" alt="Vue Logo" />
-          <h2 class="text-3xl text-center font-bold mb-8">Ubah Materi</h2>
+          <h2 class="text-3xl text-center font-bold mb-8">Perbarui Materi</h2>
 
           <!-- Judul Materi -->
           <div class="mb-3">
@@ -251,7 +328,7 @@ onMounted(async () => {
             type="submit"
             :disabled="form.isSubmitting"
           >
-            {{ form.isSubmitting ? 'Menyimpan materi...' : 'Simpan' }}
+            {{ form.isSubmitting ? 'Memperbarui materi...' : 'Perbarui' }}
           </button>
 
           <!-- Alert Error Upload -->
