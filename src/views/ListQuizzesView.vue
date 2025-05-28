@@ -2,7 +2,7 @@
 import { reactive, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import QuizzesCard from '@/components/QuizzesCard.vue'
+import QuizCard from '@/components/QuizCard.vue'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 import { getQuizzes } from '@/services/quizService.js'
 import { errorMessage } from '@/services/errorService.js'
@@ -105,7 +105,7 @@ onMounted(async () => {
       <div v-else>
         <h2 class="text-3xl font-bold mb-6 text-center font-poppins">Daftar Quiz Anda</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <QuizzesCard v-for="material in state.list" :key="material.id" :material="material" />
+          <QuizCard v-for="quiz in state.list" :key="quiz.id" :quiz="quiz" />
         </div>
       </div>
     </div>

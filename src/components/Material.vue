@@ -25,7 +25,7 @@ import { RouterLink } from 'vue-router'
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-stretch md:grid-cols-3 md:gap-8">
       <!-- Materi Matematika -->
-      <div class="divide-y divide-gray-300 rounded-2xl shadow-xs bg-[#F0F3FF] hover:scale-105">
+      <div class="divide-y divide-gray-300 rounded-2xl shadow-xs bg-[#F0F3FF]">
         <div class="p-6 sm:px-8">
           <h2 class="text-sm font-medium text-[#5988FF]">
             Dasar-Menengah
@@ -132,7 +132,7 @@ import { RouterLink } from 'vue-router'
       </div>
 
       <!-- Materi Bahasa Indonesia -->
-      <div class="divide-y divide-gray-300 rounded-2xl shadow-xs bg-[#F0F3FF] hover:scale-105">
+      <div class="divide-y divide-gray-300 rounded-2xl shadow-xs bg-[#F0F3FF]">
         <div class="p-6 sm:px-8">
           <h2 class="text-sm font-medium text-[#5988FF]">
             Dasar-Menengah
@@ -239,7 +239,7 @@ import { RouterLink } from 'vue-router'
       </div>
 
       <!-- Materi IPA -->
-      <div class="divide-y divide-gray-300 rounded-2xl shadow-xs bg-[#F0F3FF] hover:scale-105">
+      <div class="divide-y divide-gray-300 rounded-2xl shadow-xs bg-[#F0F3FF]">
         <div class="p-6 sm:px-8">
           <h2 class="text-sm font-medium text-[#5988FF]">
             Dasar-Menengah

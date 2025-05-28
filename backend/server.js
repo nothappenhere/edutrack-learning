@@ -6,6 +6,7 @@ import dotenv from 'dotenv'
 
 import auth from './routes/auth.js'
 import materials from './routes/materials.js'
+import quizzes from './routes/quizzes.js'
 import errorHandler from './middlewares/errorHandler.js'
 import notFound from './middlewares/notFound.js'
 
@@ -20,7 +21,7 @@ app.use(express.urlencoded({ extended: false }))
 // app.use(morgan('dev')) // Log HTTP requests
 
 //* Routes
-app.use('/api', auth, materials)
+app.use('/api', auth, materials, quizzes)
 
 //* Error Handling
 app.use(notFound)

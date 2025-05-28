@@ -15,7 +15,7 @@ import AddMaterialView from '@/views/AddMaterialView.vue'
 import EditMaterialView from '@/views/EditMaterialView.vue'
 
 import ListQuizzesView from '@/views/ListQuizzesView.vue'
-// import AddQuizzesView from '@/views/AddQuizzesView.vue'
+import AddQuizView from '@/views/AddQuizView.vue'
 // import EditQuizzesView from '@/views/EditQuizzesView.vue'
 
 const router = createRouter({
@@ -49,7 +49,7 @@ const router = createRouter({
       children: [
         {
           path: 'materials',
-          name: 'List-Material',
+          name: 'List-Materials',
           component: ListMaterialView,
           meta: { requiresRole: 'teacher' },
         },
@@ -71,12 +71,12 @@ const router = createRouter({
           component: ListQuizzesView,
           meta: { requiresRole: 'teacher' },
         },
-        // {
-        //   path: 'quizzes/add',
-        //   name: 'Add-Quizzes',
-        //   component: AddQuizzesView,
-        //   meta: { requiresRole: 'teacher' },
-        // },
+        {
+          path: 'quizzes/add',
+          name: 'Add-Quiz',
+          component: AddQuizView,
+          meta: { requiresRole: 'teacher' },
+        },
         // {
         //   path: 'quizzes/edit/:id',
         //   name: 'Edit-Quizzes',

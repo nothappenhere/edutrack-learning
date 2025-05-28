@@ -84,52 +84,46 @@ export const getSingleQuiz = async (req, res, next) => {
 }
 
 /**
- * @desc Upload quiz + file to S3
+ * @desc Upload quiz
  * @route POST /api/quizzes
  */
 export const addQuiz = async (req, res, next) => {
-  const { title, description, uploadedBy, subject, level } = req.body
-  const file = req.file
+  const { title, subject, level, created_by, questions } = req.body
 
   try {
-    // Upload gambar ke S3
-    const fileContent = await fs.readFile(file.path)
-
-    const ext = path.extname(file.originalname)
-    const filename = path.basename(file.originalname, ext)
-    const timestamp = getFormattedTimestamp()
-
-    const key = `uploads/${filename}-${timestamp}-${uuidv4()}${ext}`
-
-    const uploadResult = await s3
-      .upload({
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: key,
-        Body: fileContent,
-        ContentType: file.mimetype,
-      })
-      .promise()
-
-    // Hapus file lokal setelah berhasil upload
-    await fs.unlink(file.path)
-
-    // URL gambar di S3
-    const fileUrl = uploadResult.Location
-
-    // Simpan materi baru ke database
+    // Simpan quiz baru ke database
     const result = await db.query(
-      `INSERT INTO materials (title, description, file_url, uploaded_by, subject, level)
-        VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-      [title, description, fileUrl, uploadedBy, subject, level],
+      `INSERT INTO quizzes (title, subject, level, created_by)
+        VALUES ($1, $2, $3, $4) RETURNING id`,
+      [title, subject, level, created_by],
     )
 
+    const quizId = result.rows[0].id
+
+    // Simpan semua soal
+    for (const q of questions) {
+      await db.query(
+        `INSERT INTO questions (quiz_id, question_text, option_a, option_b, option_c, option_d, correct_answer)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          quizId,
+          q.question_text,
+          q.option_a,
+          q.option_b,
+          q.option_c,
+          q.option_d,
+          q.correct_answer.toUpperCase(),
+        ],
+      )
+    }
+
     res.status(201).json({
-      message: 'Berhasil menambahkan materi baru',
-      material_id: result.rows[0].id,
+      message: 'Berhasil menambahkan quiz baru',
+      quiz_id: quizId,
     })
   } catch (error) {
-    res.status(500).json({ error: 'Gagal menambahkan materi baru' })
-    console.error('Gagal menambahkan materi baru:', error)
+    console.error('Gagal menambahkan quiz baru:', error)
+    res.status(500).json({ error: 'Gagal menambahkan quiz baru' })
     next(error)
   }
 }
