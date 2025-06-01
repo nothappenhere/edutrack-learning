@@ -9,12 +9,15 @@ import { v4 as uuidv4 } from 'uuid'
 dotenv.config()
 
 /**
- * @desc   Getting all materials
- * @route  GET /api/materials
+ * @desc   Getting all materials by creator id
+ * @route  GET /api/materials/:id
  */
 export const getMaterials = async (req, res, next) => {
+  const id = req.params.id
+
   try {
-    const result = await db.query(`
+    const result = await db.query(
+      `
       SELECT
         materials.*,
         users.full_name
@@ -22,9 +25,13 @@ export const getMaterials = async (req, res, next) => {
         materials
       INNER JOIN
         users ON users.id = materials.uploaded_by
+      WHERE
+        materials.uploaded_by = $1
       ORDER BY
         materials.created_at DESC
-    `)
+    `,
+      [id],
+    )
 
     const materials = result.rows
 
@@ -45,7 +52,7 @@ export const getMaterials = async (req, res, next) => {
 
 /**
  * @desc   Getting single material
- * @route  GET /api/materials/:id
+ * @route  GET /api/material/:id
  */
 export const getSingleMaterial = async (req, res, next) => {
   const id = req.params.id
@@ -85,7 +92,7 @@ export const getSingleMaterial = async (req, res, next) => {
 
 /**
  * @desc Upload material + file to S3
- * @route POST /api/materials
+ * @route POST /api/material
  */
 export const addMaterial = async (req, res, next) => {
   const { title, description, uploadedBy, subject, level } = req.body
@@ -136,7 +143,7 @@ export const addMaterial = async (req, res, next) => {
 
 /**
  * @desc Update material + file to s3
- * @route PUT /api/materials
+ * @route PUT /api/material
  */
 export const updateMaterial = async (req, res, next) => {
   const id = req.params.id
@@ -211,7 +218,7 @@ export const updateMaterial = async (req, res, next) => {
 
 /**
  * @desc   Delete material by ID
- * @route  DELETE /api/materials/:id
+ * @route  DELETE /api/material/:id
  */
 export const deleteMaterial = async (req, res, next) => {
   const id = req.params.id

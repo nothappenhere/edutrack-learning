@@ -6,6 +6,12 @@ import MaterialCard from '@/components/MaterialCard.vue'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 import { getMaterials } from '@/services/materialService.js'
 import { errorMessage } from '@/services/errorService.js'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
+userStore.loadUser()
+const user_id = userStore.user?.user_id
+
 
 const state = reactive({
   list: [],
@@ -19,7 +25,7 @@ const toggleButton = () => {
 
 onMounted(async () => {
   try {
-    const response = await getMaterials()
+    const response = await getMaterials(user_id)
 
     state.list = response.materials
     state.isLoading = false

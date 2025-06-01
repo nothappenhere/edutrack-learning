@@ -14,9 +14,9 @@ import ListMaterialView from '@/views/ListMaterialView.vue'
 import AddMaterialView from '@/views/AddMaterialView.vue'
 import EditMaterialView from '@/views/EditMaterialView.vue'
 
-import ListQuizzesView from '@/views/ListQuizzesView.vue'
+import ListQuizzesView from '@/views/ListQuizView.vue'
 import AddQuizView from '@/views/AddQuizView.vue'
-// import EditQuizzesView from '@/views/EditQuizzesView.vue'
+import EditQuizView from '@/views/EditQuizView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,6 +47,7 @@ const router = createRouter({
       component: DashboardView,
       meta: { requiresAuth: true },
       children: [
+        //? Materials
         {
           path: 'materials',
           name: 'List-Materials',
@@ -60,11 +61,12 @@ const router = createRouter({
           meta: { requiresRole: 'teacher' },
         },
         {
-          path: 'materials/edit/:id',
+          path: 'materials/:id',
           name: 'Edit-Material',
           component: EditMaterialView,
           meta: { requiresRole: 'teacher' },
         },
+        //? Quizzes
         {
           path: 'quizzes',
           name: 'List-Quizzes',
@@ -77,12 +79,12 @@ const router = createRouter({
           component: AddQuizView,
           meta: { requiresRole: 'teacher' },
         },
-        // {
-        //   path: 'quizzes/edit/:id',
-        //   name: 'Edit-Quizzes',
-        //   component: EditQuizzesView,
-        //   meta: { requiresRole: 'teacher' },
-        // },
+        {
+          path: 'quizzes/:id',
+          name: 'Edit-Quiz',
+          component: EditQuizView,
+          meta: { requiresRole: 'teacher' },
+        },
       ],
     },
     {

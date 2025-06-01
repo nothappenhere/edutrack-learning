@@ -1,20 +1,15 @@
 import db from '../config/db.js'
-import dotenv from 'dotenv'
-import fs from 'fs/promises'
-import s3, { getFormattedTimestamp } from '../config/s3.js'
-
-import path from 'path'
-import { v4 as uuidv4 } from 'uuid'
-
-dotenv.config()
 
 /**
  * @desc   Getting all quizzes
- * @route  GET /api/quizzes
+ * @route  GET /api/quizzes/:id
  */
 export const getQuizzes = async (req, res, next) => {
+  const id = req.params.id
+
   try {
-    const result = await db.query(`
+    const result = await db.query(
+      `
       SELECT
         quizzes.*,
         users.full_name
@@ -22,9 +17,13 @@ export const getQuizzes = async (req, res, next) => {
         quizzes
       INNER JOIN
         users ON users.id = quizzes.created_by
+      WHERE
+        quizzes.created_by = $1
       ORDER BY
         quizzes.created_at DESC
-    `)
+    `,
+      [id],
+    )
 
     const quizzes = result.rows
 
@@ -44,48 +43,56 @@ export const getQuizzes = async (req, res, next) => {
 }
 
 /**
- * @desc   Getting single quiz
- * @route  GET /api/quizzes/:id
+ * @desc   Getting single quiz and its questions
+ * @route  GET /api/quiz/:id
  */
 export const getSingleQuiz = async (req, res, next) => {
   const id = req.params.id
 
   try {
+    // Ambil data quiz + pembuatnya
     const result = await db.query(
       `
       SELECT
-        materials.*,
+        quizzes.*,
         users.full_name AS teacher_name,
         users.email AS teacher_email
       FROM
-        materials
+        quizzes
       INNER JOIN
-        users ON users.id = materials.uploaded_by
+        users ON users.id = quizzes.created_by
       WHERE
-        materials.id = $1
+        quizzes.id = $1
       `,
       [id],
     )
 
-    const material = result.rows
-    if (material.length === 0) {
-      return res.status(404).json({ error: 'Materi tidak ditemukan' })
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Quiz tidak ditemukan' })
     }
 
+    const quiz = result.rows[0] // Ambil sebagai objek tunggal
+
+    // Ambil semua pertanyaan dari quiz ini
+    const questionResult = await db.query(`SELECT * FROM questions WHERE quiz_id = $1`, [quiz.id])
+
+    const questions = questionResult.rows
+
     return res.status(200).json({
-      message: 'Berhasil mendapatkan data materi',
-      material: material[0], // ambil satu objek, bukan array
+      message: 'Berhasil mendapatkan data quiz',
+      quiz,
+      questions,
     })
   } catch (error) {
-    res.status(500).json({ error: 'Gagal mengambil data materi' })
-    console.error('Gagal mengambil data materi:', error)
+    res.status(500).json({ error: 'Gagal mengambil data quiz' })
+    console.error('Gagal mengambil data quiz:', error)
     next(error)
   }
 }
 
 /**
  * @desc Upload quiz
- * @route POST /api/quizzes
+ * @route POST /api/quiz
  */
 export const addQuiz = async (req, res, next) => {
   const { title, subject, level, created_by, questions } = req.body
@@ -129,41 +136,66 @@ export const addQuiz = async (req, res, next) => {
 }
 
 /**
- * @desc   Delete quiz by ID
- * @route  DELETE /api/quizzes/:id
+ * @desc Update quiz
+ * @route PUT /api/quiz/:id
+ */
+export const updateQuiz = async (req, res, next) => {
+  const id = req.params.id
+  const { title, subject, level, created_by, questions } = req.body
+
+  try {
+    // Update quiz utama
+    await db.query(
+      `UPDATE quizzes
+       SET title = $1, subject = $2, level = $3, created_by = $4
+       WHERE id = $5`,
+      [title, subject, level, created_by, id],
+    )
+
+    // Hapus soal-soal lama dari quiz ini
+    await db.query(`DELETE FROM questions WHERE quiz_id = $1`, [id])
+
+    // Insert soal-soal baru
+    for (const q of questions) {
+      const { question_text, option_a, option_b, option_c, option_d, correct_answer } = q
+      await db.query(
+        `INSERT INTO questions (quiz_id, question_text, option_a, option_b, option_c, option_d, correct_answer)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [id, question_text, option_a, option_b, option_c, option_d, correct_answer],
+      )
+    }
+
+    res.status(200).json({ message: 'Berhasil memperbarui quiz', quiz_id: id })
+  } catch (error) {
+    console.error('Gagal memperbarui quiz:', error)
+    res.status(500).json({ error: 'Gagal memperbarui quiz' })
+    next(error)
+  }
+}
+
+/**
+ * @desc   Delete quiz by ID (automatic cascade delete for questions & submissions)
+ * @route  DELETE /api/quiz/:id
  */
 export const deleteQuiz = async (req, res, next) => {
   const id = req.params.id
 
   try {
-    // Periksa apakah materi dengan ID tersebut ada
-    const checkMaterial = await db.query('SELECT * FROM materials WHERE id = $1', [id])
+    // Periksa apakah quiz dengan ID tersebut ada
+    const checkquiz = await db.query('SELECT * FROM quizzes WHERE id = $1', [id])
 
-    const material = checkMaterial.rows
-    if (material.length === 0) {
-      return res.status(404).json({ error: 'Materi tidak ditemukan' })
+    if (checkquiz.rows.length === 0) {
+      return res.status(404).json({ error: 'Quiz tidak ditemukan' })
     }
 
-    const key = material[0].file_url.split('/').slice(-1)[0]
-    await s3
-      .deleteObject({
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `uploads/${key}`,
-      })
-      .promise()
+    // Hapus quiz (questions & submissions akan ikut terhapus karena ON DELETE CASCADE)
+    const result = await db.query('DELETE FROM quizzes WHERE id = $1', [id])
 
-    // Hapus materi
-    const result = await db.query('DELETE FROM materials WHERE id = $1', [id])
-
-    // Periksa apakah penghapusan berhasil
-    if (result.rowCount === 0) {
-      return res.status(403).json({ error: 'Gagal menghapus materi' })
-    }
-
-    res.status(200).json({ message: 'Materi berhasil dihapus' })
+    res
+      .status(200)
+      .json({ message: 'Quiz berhasil dihapus beserta pertanyaan dan submissions-nya' })
   } catch (error) {
-    // res.status(500).json({ error: 'Password-reset error' })
-    console.error('Failed to delete material:', error)
+    console.error('Gagal menghapus quiz:', error)
     next(error)
   }
 }

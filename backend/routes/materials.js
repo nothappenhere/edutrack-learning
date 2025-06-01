@@ -24,14 +24,14 @@ const upload = multer({
 })
 
 //? Route untuk List semua materi
-router.get('/materials', getMaterials)
+router.get('/materials/:id', getMaterials)
 
 //? Route untuk Detail satu materi
-router.get('/materials/:id', getSingleMaterial)
+router.get('/material/:id', getSingleMaterial)
 
 //? Route untuk Upload materi (teacher only)
 router.post(
-  '/materials',
+  '/material',
   authenticateToken, // Cek token JWT
   authorizeRole(['admin', 'teacher']), // Hanya admin/teacher yang boleh add
   upload.single('file'), // Jika mengunggah file materi baru
@@ -40,7 +40,7 @@ router.post(
 
 //? Route untuk Update materi
 router.put(
-  '/materials/:id',
+  '/material/:id',
   authenticateToken, // Cek token JWT
   authorizeRole(['admin', 'teacher']), // Hanya admin/teacher yang boleh update
   upload.single('file'), // Jika mengunggah file materi baru
@@ -49,7 +49,7 @@ router.put(
 
 //? Route untuk Hapus materi
 router.delete(
-  '/materials/:id',
+  '/material/:id',
   authenticateToken, // Cek token JWT
   authorizeRole(['admin', 'teacher']), // Hanya admin/teacher yang boleh delete
   deleteMaterial, // Handler untuk delete

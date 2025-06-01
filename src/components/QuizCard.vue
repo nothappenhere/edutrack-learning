@@ -58,8 +58,8 @@ const formatDate = (dateString) => {
       {{ formatDate(quiz.created_at) }}
     </time>
 
-    <RouterLink :to="`/dashboard/teacher/quizzes/edit/${quiz.id}`">
-      <h3 class="mt-0.5 text-lg font-medium text-gray-900">
+    <RouterLink :to="`/dashboard/teacher/quizzes/${quiz.id}`">
+      <h3 class="mt-0.5 text-lg font-medium text-gray-900 hover:underline">
         {{ quiz.title }}
       </h3>
     </RouterLink>

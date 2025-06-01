@@ -17,7 +17,7 @@ function isImage(url) {
 <template>
   <article class="rounded-xl border-2 border-gray-100 bg-white">
     <div class="flex items-start gap-4 p-4 sm:p-6 lg:p-8">
-      <RouterLink :to="`/dashboard/teacher/materials/edit/${material.id}`" class="block shrink-0">
+      <RouterLink :to="`/dashboard/teacher/materials/${material.id}`" class="block shrink-0">
         <img
           v-if="isImage(material.file_url)"
           :src="material.file_url"
@@ -159,10 +159,7 @@ function isImage(url) {
 
       <div>
         <h3 class="font-medium sm:text-lg">
-          <RouterLink
-            :to="`/dashboard/teacher/materials/edit/${material.id}`"
-            class="hover:underline"
-          >
+          <RouterLink :to="`/dashboard/teacher/materials/${material.id}`" class="hover:underline">
             {{ material.title }}
           </RouterLink>
         </h3>

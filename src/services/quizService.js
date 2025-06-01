@@ -2,22 +2,27 @@ import axios from 'axios'
 
 const API_BASE = 'http://localhost:8000/api'
 
-export const getQuizzes = async () => {
-  const response = await axios.get(`${API_BASE}/quizzes`)
-  return response.data
-}
-
-export const getSingleQuiz = async (id) => {
+export const getQuizzes = async (id) => {
   const response = await axios.get(`${API_BASE}/quizzes/${id}`)
   return response.data
 }
 
+export const getSingleQuiz = async (id) => {
+  const response = await axios.get(`${API_BASE}/quiz/${id}`)
+  return response.data
+}
+
 export const addQuiz = async (data) => {
-  const response = await axios.post(`${API_BASE}/quizzes`, data)
+  const response = await axios.post(`${API_BASE}/quiz`, data)
+  return response.data
+}
+
+export const updateQuiz = async (id, data) => {
+  const response = await axios.put(`${API_BASE}/quiz/${id}`, data)
   return response.data
 }
 
 export const deleteQuiz = async (id) => {
-  const response = await axios.delete(`${API_BASE}/quizzes/${id}`)
+  const response = await axios.delete(`${API_BASE}/quiz/${id}`)
   return response.data
 }

@@ -6,6 +6,11 @@ import QuizCard from '@/components/QuizCard.vue'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 import { getQuizzes } from '@/services/quizService.js'
 import { errorMessage } from '@/services/errorService.js'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
+userStore.loadUser()
+const user_id = userStore.user?.user_id
 
 const state = reactive({
   list: [],
@@ -19,7 +24,7 @@ const toggleButton = () => {
 
 onMounted(async () => {
   try {
-    const response = await getQuizzes()
+    const response = await getQuizzes(user_id)
 
     state.list = response.quizzes
     state.isLoading = false

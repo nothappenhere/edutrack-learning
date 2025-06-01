@@ -1,37 +1,28 @@
 <script setup>
-import { reactive, onMounted, ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, reactive, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import { useToast } from 'vue-toastification'
 import { useToastOption } from '@/stores/toast.js'
 import { useUserStore } from '@/stores/user.js'
-import { getSingleMaterial, updateMaterial, deleteMaterial } from '@/services/materialService.js'
+import { getSingleQuiz, updateQuiz, deleteQuiz } from '@/services/quizService.js'
 import { errorMessage } from '@/services/errorService.js'
+import Question from '@/components/Question.vue'
 
 const userStore = useUserStore()
 userStore.loadUser()
 const user_id = userStore.user?.user_id
 
-const route = useRoute()
-const materialId = route.params.id
-
-const router = useRouter()
-const image = ref(null)
-const imagePreview = ref(null)
-const isPDF = ref(false)
-
 const form = reactive({
   title: '',
-  description: '',
   subject: '',
   level: '',
-  file: '',
   isSubmitting: false,
   uploadError: false,
 })
 
 const state = reactive({
-  material: {},
+  quiz: {},
   isLoading: true,
   isClosed: false,
   isDelete: false,
@@ -44,60 +35,97 @@ const toggleButton = () => {
 const toast = useToast()
 const toastOpt = useToastOption()
 
-function handleFileChange(event) {
-  const file = event.target.files[0]
-  if (file) {
-    image.value = file
-    const fileUrl = URL.createObjectURL(file)
-    imagePreview.value = fileUrl
-    isPDF.value = file.type === 'application/pdf'
+const route = useRoute()
+const quizId = route.params.id
+
+const router = useRouter()
+const questions = reactive([])
+const questionNumber = ref(0)
+const validAnswer = ['A', 'B', 'C', 'D']
+
+const increaseQusetion = () => {
+  questionNumber.value++
+  questions.push({
+    question_text: '',
+    option_a: '',
+    option_b: '',
+    option_c: '',
+    option_d: '',
+    correct_answer: '',
+  })
+}
+const decreaseQusetion = () => {
+  if (questionNumber.value > 0) {
+    questionNumber.value--
+    questions.pop()
   }
+
+  if (questionNumber.value <= 0) questionNumber.value = 0
 }
 
 const handleSubmit = async () => {
+  const toast = useToast()
+  const toastOpt = useToastOption()
+
   if (!user_id) {
     return toast.error('Penggguna belum login!', toastOpt.toastOptions)
   }
 
-  if (!form.title || !form.description || !form.subject || !form.level) {
+  if (!form.title || !form.subject || !form.level) {
     return toast.error('Semua kolom harus diisi!', toastOpt.toastOptions)
   }
 
-  if (!image.value) {
-    return toast.error('Mohon pilih file materi terlebih dahulu!', toastOpt.toastOptions)
+  if (questions.length === 0) {
+    return toast.error(
+      'Jumlah soal tidak boleh kosong, buat minimal 1 soal!',
+      toastOpt.toastOptions,
+    )
+  }
+
+  // Validasi tiap soal
+  for (const [i, q] of questions.entries()) {
+    if (!validAnswer.includes(q.correct_answer.toUpperCase())) {
+      return toast.error(
+        `Jawaban benar pada soal ${i + 1} tidak valid! Hanya boleh A, B, C, atau D.`,
+        toastOpt.toastOptions,
+      )
+    }
   }
 
   form.isSubmitting = true
   // await new Promise((resolve) => setTimeout(resolve, 3000))
 
   try {
-    const formData = new FormData()
-    formData.append('title', form.title)
-    formData.append('description', form.description)
-    formData.append('uploadedBy', user_id)
-    formData.append('subject', form.subject)
-    formData.append('level', form.level)
-    formData.append('file', image.value)
+    const payload = {
+      title: form.title,
+      subject: form.subject,
+      level: form.level,
+      created_by: user_id,
+      questions: questions.map((q) => ({
+        ...q,
+        correct_answer: q.correct_answer.toUpperCase(), // Pastikan huruf besar saat dikirim
+      })),
+    }
 
-    const response = await updateMaterial(materialId, formData)
+    const quiz = await updateQuiz(quizId, payload)
 
-    router.push('/dashboard/teacher/materials')
-    toast.success(`${response.message}.`, toastOpt.toastOptions)
+    if (quiz.quiz_id) {
+      router.push('/dashboard/teacher/quizzes')
+      toast.success(`${quiz.message}.`, toastOpt.toastOptions)
+    }
   } catch (error) {
     errorMessage(error)
     form.uploadError = true
   } finally {
-    image.value = null
-    imagePreview.value = null
     form.isSubmitting = false
   }
 }
 
-const confirmDeleteMaterial = async () => {
+const confirmDeleteQuiz = async () => {
   try {
-    const response = await deleteMaterial(materialId)
+    const response = await deleteQuiz(quizId)
 
-    router.push('/dashboard/teacher/materials')
+    router.push('/dashboard/teacher/quizzes')
     toast.success(`${response.message}.`, toastOpt.toastOptions)
   } catch (error) {
     errorMessage(error)
@@ -106,18 +134,17 @@ const confirmDeleteMaterial = async () => {
 
 onMounted(async () => {
   try {
-    const response = await getSingleMaterial(materialId)
+    const response = await getSingleQuiz(quizId)
 
-    state.material = response.material
+    state.quiz = response.quiz
     state.isLoading = false
 
-    form.title = state.material.title
-    form.description = state.material.description
-    form.subject = state.material.subject
-    form.level = state.material.level
+    form.title = state.quiz.title
+    form.subject = state.quiz.subject
+    form.level = state.quiz.level
 
-    imagePreview.value = state.material.file_url
-    isPDF.value = state.material.file_url?.toLowerCase().endsWith('.pdf')
+    questions.push(...response.questions)
+    questionNumber.value = response.questions.length
   } catch (error) {
     errorMessage(error)
   }
@@ -126,23 +153,20 @@ onMounted(async () => {
 
 <template>
   <section class="bg-[#F0F3FF] font-poppins">
-    <div class="container m-auto max-w-lg py-14">
-      <div class="bg-white px-6 py-8 mb-4 rounded-xl m-4 md:m-0 border">
-        <form @submit.prevent="handleSubmit">
+    <form @submit.prevent="handleSubmit" class="flex items-start justify-center gap-16 px-14">
+      <div class="container max-w-lg py-14">
+        <div class="bg-white px-6 py-8 mb-4 rounded-xl m-4 md:m-0 border">
           <div class="flex justify-between items-center mb-5">
             <div>
-              <RouterLink
-                to="/dashboard/teacher/materials"
-                class="text-gray-700 hover:text-gray-900"
-              >
+              <RouterLink to="/dashboard/teacher/quizzes" class="text-gray-700 hover:text-gray-900">
                 <i class="fa fa-solid fa-arrow-left me-2"></i>
-                Kembali ke Daftar Materi
+                Kembali ke Daftar Quiz
               </RouterLink>
             </div>
 
             <div>
               <button @click="toggleButton" type="button" class="text-gray-700 hover:text-gray-900">
-                Hapus Materi
+                Hapus Quiz
                 <i class="fa fa-solid fa-trash ms-2"></i>
               </button>
             </div>
@@ -155,15 +179,13 @@ onMounted(async () => {
           >
             <div class="flex items-start ms-3">
               <div class="flex-1">
-                <strong class="font-medium text-white"> Hapus Materi </strong>
+                <strong class="font-medium text-white"> Hapus Quiz </strong>
 
-                <p class="mt-0.5 text-sm text-white">
-                  Apakah Anda yakin ingin menghapus materi ini?
-                </p>
+                <p class="mt-0.5 text-sm text-white">Apakah Anda yakin ingin menghapus quiz ini?</p>
 
                 <div class="mt-3 flex items-center gap-2">
                   <button
-                    @click="confirmDeleteMaterial"
+                    @click="confirmDeleteQuiz"
                     type="button"
                     class="rounded border border-gray-300 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-colors hover:text-[#E5EDFF] hover:border-[#E5EDFF] cursor-pointer"
                   >
@@ -203,12 +225,12 @@ onMounted(async () => {
           </div>
 
           <img class="h-20 w-auto m-auto" src="../assets/img/logo.png" alt="Vue Logo" />
-          <h2 class="text-3xl text-center font-bold mb-8">Perbarui Materi</h2>
+          <h2 class="text-3xl text-center font-bold mb-8">Perbarui Quiz</h2>
 
-          <!-- Judul Materi -->
+          <!-- Judul Quiz -->
           <div class="mb-3">
             <label class="text-gray-700 font-semibold block mb-1">
-              <i class="fa-solid fa-book-open-reader me-2"></i> Judul Materi
+              <i class="fa-solid fa-book-open-reader me-2"></i> Judul Quiz
             </label>
             <input
               type="text"
@@ -217,19 +239,6 @@ onMounted(async () => {
               placeholder="Contoh: Dasar Matematika"
               required
             />
-          </div>
-
-          <!-- Deskripsi Materi -->
-          <div class="mb-3">
-            <label class="text-gray-700 font-semibold block mb-1">
-              <i class="fa-solid fa-folder me-2"></i> Deskripsi
-            </label>
-            <textarea
-              v-model="form.description"
-              class="border w-full py-2 px-3 rounded"
-              placeholder="Berikan deskripsi singkat materi"
-              rows="3"
-            ></textarea>
           </div>
 
           <!-- Subjek -->
@@ -248,7 +257,7 @@ onMounted(async () => {
           <!-- Level -->
           <div class="mb-8">
             <label class="text-gray-700 font-semibold block mb-1">
-              <i class="fa-solid fa-layer-group me-2"></i> Level Materi
+              <i class="fa-solid fa-layer-group me-2"></i> Level Quiz
             </label>
             <select v-model="form.level" class="border w-full py-2 px-3 rounded" required>
               <option disabled value="">Pilih level</option>
@@ -256,63 +265,6 @@ onMounted(async () => {
               <option value="intermediate">Menengah</option>
               <option value="advanced">Sulit</option>
             </select>
-          </div>
-
-          <!-- Upload File -->
-          <div class="mb-8">
-            <label
-              for="File"
-              class="mt-5 flex flex-col items-center rounded border p-4 text-gray-900 shadow-sm sm:p-6 cursor-pointer hover:bg-gray-100"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="size-6"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M7.5 7.5h-.75A2.25 2.25 0 0 0 4.5 9.75v7.5a2.25 2.25 0 0 0 2.25 2.25h7.5a2.25 2.25 0 0 0 2.25-2.25v-7.5a2.25 2.25 0 0 0-2.25-2.25h-.75m0-3-3-3m0 0-3 3m3-3v11.25"
-                />
-              </svg>
-
-              <span class="mt-4 font-medium">Unggah Materi (PDF/Gambar)</span>
-              <span
-                class="mt-2 inline-block rounded border bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 shadow-xl"
-              >
-                Browse files
-              </span>
-
-              <!-- Preview PDF atau Gambar -->
-              <div v-if="imagePreview" class="mt-4 text-center">
-                <!-- Preview PDF -->
-                <iframe
-                  v-if="isPDF"
-                  :src="imagePreview"
-                  class="w-full max-w-3xl h-80 border rounded"
-                ></iframe>
-
-                <!-- Preview Gambar -->
-                <img
-                  v-else
-                  :src="imagePreview"
-                  alt="Preview"
-                  class="max-w-sm mx-auto border rounded"
-                />
-              </div>
-
-              <input
-                type="file"
-                id="File"
-                accept="application/pdf,image/*"
-                @change="handleFileChange"
-                class="sr-only"
-                required
-              />
-            </label>
           </div>
 
           <button
@@ -329,7 +281,7 @@ onMounted(async () => {
             type="submit"
             :disabled="form.isSubmitting"
           >
-            {{ form.isSubmitting ? 'Memperbarui materi...' : 'Perbarui' }}
+            {{ form.isSubmitting ? 'Memperbarui quiz...' : 'Perbarui' }}
           </button>
 
           <!-- Alert Error Upload -->
@@ -355,10 +307,61 @@ onMounted(async () => {
               <strong class="font-medium"> Terjadi kesalahan </strong>
             </div>
 
-            <p class="mt-2 text-sm text-red-700">Gagal memperbarui materi. Silakan coba lagi!</p>
+            <p class="mt-2 text-sm text-red-700">Gagal memperbarui quiz. Silakan coba lagi!</p>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
+
+      <div class="container max-w-lg py-14">
+        <div class="bg-white px-6 py-8 mb-4 rounded-xl m-4 md:m-0 border">
+          <!-- <img class="h-20 w-auto m-auto" src="../assets/img/logo.png" alt="Vue Logo" /> -->
+          <h2 class="text-3xl text-center font-bold mb-8">Soal Quiz</h2>
+          <div class="flex justify-between items-center mb-5 gap-3">
+            <div class="flex-1/2 font-semibold text-gray-700 text-right text-lg">
+              <p>Jumlah soal:</p>
+            </div>
+
+            <div class="bg-gray-100">
+              <label for="Quantity" class="sr-only"> Quantity </label>
+
+              <div class="flex items-center justify-center rounded-sm border border-gray-200">
+                <button
+                  @click="decreaseQusetion"
+                  type="button"
+                  class="size-10 leading-10 text-gray-600 transition hover:opacity-75 hover:border cursor-pointer"
+                >
+                  &minus;
+                </button>
+
+                <input
+                  type="number"
+                  id="Quantity"
+                  :value="questionNumber"
+                  class="h-8 w-8 border-transparent text-center [-moz-appearance:_textfield] sm:text-sm [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
+                />
+
+                <button
+                  @click="increaseQusetion"
+                  type="button"
+                  class="size-10 leading-10 text-gray-600 transition hover:opacity-75 hover:border cursor-pointer"
+                >
+                  &plus;
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4" />
+
+          <!-- Soal Quiz -->
+          <Question
+            v-for="(q, index) in questions"
+            :key="index"
+            :question-number="index + 1"
+            v-model:question="questions[index]"
+          />
+        </div>
+      </div>
+    </form>
   </section>
 </template>

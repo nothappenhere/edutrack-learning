@@ -1,26 +1,40 @@
 import express from 'express'
 const router = express.Router()
 
-import { getQuizzes, getSingleQuiz, addQuiz, deleteQuiz } from '../controllers/quizController.js'
+import {
+  getQuizzes,
+  getSingleQuiz,
+  addQuiz,
+  updateQuiz,
+  deleteQuiz,
+} from '../controllers/quizController.js'
 import { authenticateToken, authorizeRole } from '../middlewares/authMiddleware.js'
 
 //? Route untuk List semua kuis
-router.get('/quizzes', getQuizzes)
+router.get('/quizzes/:id', getQuizzes)
 
 //? Route untuk Detail satu kuis
-router.get('/quizzes/:id', getSingleQuiz)
+router.get('/quiz/:id', getSingleQuiz)
 
 //? Route untuk Upload kuis (teacher only)
 router.post(
-  '/quizzes',
+  '/quiz',
   authenticateToken, // Cek token JWT
   authorizeRole(['admin', 'teacher']), // Hanya admin/teacher yang boleh add
   addQuiz, // Handler untuk add
 )
 
+//? Route untuk Update kuis
+router.put(
+  '/quiz/:id',
+  authenticateToken, // Cek token JWT
+  authorizeRole(['admin', 'teacher']), // Hanya admin/teacher yang boleh update
+  updateQuiz, // Handler untuk update
+)
+
 //? Route untuk Hapus kuis
 router.delete(
-  '/quizzes/:id',
+  '/quiz/:id',
   authenticateToken, // Cek token JWT
   authorizeRole(['admin', 'teacher']), // Hanya admin/teacher yang boleh delete
   deleteQuiz, // Handler untuk delete
