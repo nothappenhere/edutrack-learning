@@ -1,4 +1,10 @@
 <script setup>
+import { useUserStore } from '@/stores/user.js'
+
+const userStore = useUserStore()
+userStore.loadUser()
+const role = userStore.user?.role
+
 const props = defineProps({
   questionNumber: Number,
   question: Object,
@@ -21,9 +27,15 @@ const updateField = (field, value) => {
       class="border w-full py-2 px-3 rounded"
       placeholder="Masukan soal quiz"
       required
+      :disabled="role !== 'teacher'"
     />
 
-    <div class="flex justify-center items-center gap-4">
+    <!-- Teacher -->
+    <div
+      v-if="role === 'teacher'"
+      :class="role === 'teacher' ? 'gap-4' : 'gap-6'"
+      class="flex justify-center items-center"
+    >
       <!-- Opsi Jawaban A -->
       <label class="relative text-gray-700 block my-4">
         <input
@@ -97,7 +109,87 @@ const updateField = (field, value) => {
       </label>
     </div>
 
-    <div class="flex justify-center items-center gap-6">
+    <!-- Student -->
+    <fieldset v-else class="space-x-5 justify-center flex">
+      <legend class="sr-only">Delivery</legend>
+      <!-- Opsi Jawaban A -->
+      <div>
+        <label
+          class="flex items-center justify-between gap-4 rounded border border-gray-300 bg-white p-3 text-sm font-medium shadow-sm transition-colors hover:bg-gray-50 has-checked:border-[#5988FF] has-checked:ring-1 has-checked:ring-[#4970D1] my-4"
+        >
+          <input
+            type="radio"
+            :name="`answer-${props.questionNumber}`"
+            :value="question.option_a"
+            class="size-5 border-gray-300"
+            @change="updateField('selectedAnswer', question.option_a)"
+          />
+
+          <div>
+            <p class="text-gray-700">{{ question.option_a }}</p>
+          </div>
+        </label>
+      </div>
+
+      <!-- Opsi Jawaban B -->
+      <div>
+        <label
+          class="flex items-center justify-between gap-4 rounded border border-gray-300 bg-white p-3 text-sm font-medium shadow-sm transition-colors hover:bg-gray-50 has-checked:border-[#5988FF] has-checked:ring-1 has-checked:ring-[#4970D1] my-4"
+        >
+          <input
+            type="radio"
+            :name="`answer-${props.questionNumber}`"
+            :value="question.option_b"
+            class="size-5 border-gray-300"
+            @change="updateField('selectedAnswer', question.option_a)"
+          />
+
+          <div>
+            <p class="text-gray-700">{{ question.option_b }}</p>
+          </div>
+        </label>
+      </div>
+
+      <!-- Opsi Jawaban C -->
+      <div>
+        <label
+          class="flex items-center justify-between gap-4 rounded border border-gray-300 bg-white p-3 text-sm font-medium shadow-sm transition-colors hover:bg-gray-50 has-checked:border-[#5988FF] has-checked:ring-1 has-checked:ring-[#4970D1] my-4"
+        >
+          <input
+            type="radio"
+            :name="`answer-${props.questionNumber}`"
+            :value="question.option_c"
+            class="size-5 border-gray-300"
+            @change="updateField('selectedAnswer', question.option_a)"
+          />
+
+          <div>
+            <p class="text-gray-700">{{ question.option_c }}</p>
+          </div>
+        </label>
+      </div>
+
+      <!-- Opsi Jawaban D -->
+      <div>
+        <label
+          class="flex items-center justify-between gap-4 rounded border border-gray-300 bg-white p-3 text-sm font-medium shadow-sm transition-colors hover:bg-gray-50 has-checked:border-[#5988FF] has-checked:ring-1 has-checked:ring-[#4970D1] my-4"
+        >
+          <input
+            type="radio"
+            :name="`answer-${props.questionNumber}`"
+            :value="question.option_d"
+            class="size-5 border-gray-300"
+            @change="updateField('selectedAnswer', question.option_a)"
+          />
+
+          <div>
+            <p class="text-gray-700">{{ question.option_d }}</p>
+          </div>
+        </label>
+      </div>
+    </fieldset>
+
+    <div v-if="role === 'teacher'" class="flex justify-center items-center gap-6">
       <label class="text-gray-700 font-semibold block mb-1">
         Jawaban Benar Soal {{ props.questionNumber }}
       </label>

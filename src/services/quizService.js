@@ -2,7 +2,12 @@ import axios from 'axios'
 
 const API_BASE = 'http://localhost:8000/api'
 
-export const getQuizzes = async (id) => {
+export const getQuizzes = async () => {
+  const response = await axios.get(`${API_BASE}/quizzes`)
+  return response.data
+}
+
+export const getQuizzesById = async (id) => {
   const response = await axios.get(`${API_BASE}/quizzes/${id}`)
   return response.data
 }

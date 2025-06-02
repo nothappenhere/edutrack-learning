@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useUserStore } from '@/stores/user'
 
 const API_BASE = 'http://localhost:8000/api/auth'
 
@@ -19,5 +20,18 @@ export const checkEmailExist = async (payload) => {
 
 export const resetPasswordUser = async (payload) => {
   const response = await axios.put(`${API_BASE}/reset-password`, payload)
+  return response.data
+}
+
+export const getCurrentUser = async () => {
+  const userStore = useUserStore()
+  userStore.loadUser()
+  const token = userStore.user?.token
+
+  const response = await axios.get(`${API_BASE}/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
   return response.data
 }

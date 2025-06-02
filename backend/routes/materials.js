@@ -4,6 +4,7 @@ const router = express.Router()
 
 import {
   getMaterials,
+  getMaterialsById,
   getSingleMaterial,
   addMaterial,
   updateMaterial,
@@ -24,7 +25,10 @@ const upload = multer({
 })
 
 //? Route untuk List semua materi
-router.get('/materials/:id', getMaterials)
+router.get('/materials', getMaterials)
+
+//? Route untuk List semua materi berdasarkan id
+router.get('/materials/:id', getMaterialsById)
 
 //? Route untuk Detail satu materi
 router.get('/material/:id', getSingleMaterial)

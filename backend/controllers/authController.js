@@ -164,38 +164,33 @@ export const resetPasswordUser = async (req, res, next) => {
 }
 
 /**
- * @desc Login user based on their role
- * @route POST /auth/me
+ * @desc get user info
+ * @route GET /auth/me
  */
 export const getCurrentUser = async (req, res, next) => {
-  const { user_id } = req.body
-
+  const { user_id } = req.user
   try {
-    // Query user berdasarkan email
     const result = await db.query(
       'SELECT full_name, email, password_hash, role FROM users WHERE id = $1',
-      [user_id],
+      [user_id]
     )
-    const selectResult = result.rows
 
-    if (selectResult.length === 0) {
-      return res.status(404).json({
-        error: 'Pengguna tidak ditemukan',
-      })
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Pengguna tidak ditemukan' })
     }
 
-    const user = selectResult[0]
+    const user = result.rows[0]
 
     res.status(200).json({
       message: 'Pengguna ditemukan dan sudah terdaftar',
       full_name: user.full_name,
       email: user.email,
-      password: user.password,
+      password: user.password_hash,
       role: user.role,
     })
   } catch (error) {
-    res.status(500).json({ error: 'Failed to retrieve user' })
     console.error('Failed to retrieve user:', error)
-    next(error)
+    res.status(500).json({ error: 'Failed to retrieve user' })
   }
 }
+

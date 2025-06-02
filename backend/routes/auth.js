@@ -4,9 +4,9 @@ const router = express.Router()
 import {
   loginUser,
   registerUser,
-  getCurrentUser,
   checkEmailExist,
   resetPasswordUser,
+  getCurrentUser,
 } from '../controllers/authController.js'
 import {
   validateLogin,

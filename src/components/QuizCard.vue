@@ -1,5 +1,6 @@
 <script setup>
 import { RouterLink } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
 const props = defineProps({
   quiz: {
@@ -7,6 +8,10 @@ const props = defineProps({
     required: true,
   },
 })
+
+const userStore = useUserStore()
+userStore.loadUser()
+const role = userStore.user?.role
 
 const formatDate = (dateString) => {
   const date = new Date(dateString)
@@ -58,7 +63,7 @@ const formatDate = (dateString) => {
       {{ formatDate(quiz.created_at) }}
     </time>
 
-    <RouterLink :to="`/dashboard/teacher/quizzes/${quiz.id}`">
+    <RouterLink :to="`/dashboard/${role}/quizzes/${quiz.id}`">
       <h3 class="mt-0.5 text-lg font-medium text-gray-900 hover:underline">
         {{ quiz.title }}
       </h3>

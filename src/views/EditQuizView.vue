@@ -12,6 +12,7 @@ import Question from '@/components/Question.vue'
 const userStore = useUserStore()
 userStore.loadUser()
 const user_id = userStore.user?.user_id
+const role = userStore.user?.role
 
 const form = reactive({
   title: '',
@@ -158,13 +159,16 @@ onMounted(async () => {
         <div class="bg-white px-6 py-8 mb-4 rounded-xl m-4 md:m-0 border">
           <div class="flex justify-between items-center mb-5">
             <div>
-              <RouterLink to="/dashboard/teacher/quizzes" class="text-gray-700 hover:text-gray-900">
+              <RouterLink
+                :to="`/dashboard/${role}/quizzes`"
+                class="text-gray-700 hover:text-gray-900"
+              >
                 <i class="fa fa-solid fa-arrow-left me-2"></i>
                 Kembali ke Daftar Quiz
               </RouterLink>
             </div>
 
-            <div>
+            <div v-if="role === 'teacher'">
               <button @click="toggleButton" type="button" class="text-gray-700 hover:text-gray-900">
                 Hapus Quiz
                 <i class="fa fa-solid fa-trash ms-2"></i>
@@ -225,7 +229,9 @@ onMounted(async () => {
           </div>
 
           <img class="h-20 w-auto m-auto" src="../assets/img/logo.png" alt="Vue Logo" />
-          <h2 class="text-3xl text-center font-bold mb-8">Perbarui Quiz</h2>
+          <h2 class="text-3xl text-center font-bold mb-8">
+            {{ role === 'teacher' ? 'Perbarui Quiz' : 'Kerjakan Quiz' }}
+          </h2>
 
           <!-- Judul Quiz -->
           <div class="mb-3">
@@ -238,6 +244,7 @@ onMounted(async () => {
               class="border w-full py-2 px-3 rounded"
               placeholder="Contoh: Dasar Matematika"
               required
+              :disabled="role !== 'teacher'"
             />
           </div>
 
@@ -251,6 +258,8 @@ onMounted(async () => {
               v-model="form.subject"
               class="border w-full py-2 px-3 rounded"
               placeholder="Misalnya: Matematika, Fisika, Biologi, dll."
+              required
+              :disabled="role !== 'teacher'"
             />
           </div>
 
@@ -259,7 +268,12 @@ onMounted(async () => {
             <label class="text-gray-700 font-semibold block mb-1">
               <i class="fa-solid fa-layer-group me-2"></i> Level Quiz
             </label>
-            <select v-model="form.level" class="border w-full py-2 px-3 rounded" required>
+            <select
+              v-model="form.level"
+              class="border w-full py-2 px-3 rounded"
+              required
+              :disabled="role !== 'teacher'"
+            >
               <option disabled value="">Pilih level</option>
               <option value="basic">Dasar</option>
               <option value="intermediate">Menengah</option>
@@ -268,6 +282,7 @@ onMounted(async () => {
           </div>
 
           <button
+            v-if="role === 'teacher'"
             :class="[
               !form.isSubmitting
                 ? 'bg-[#5988FF] hover:bg-[#4970D1] cursor-pointer'
@@ -327,6 +342,7 @@ onMounted(async () => {
               <div class="flex items-center justify-center rounded-sm border border-gray-200">
                 <button
                   @click="decreaseQusetion"
+                  :disabled="role !== 'teacher'"
                   type="button"
                   class="size-10 leading-10 text-gray-600 transition hover:opacity-75 hover:border cursor-pointer"
                 >
@@ -337,11 +353,13 @@ onMounted(async () => {
                   type="number"
                   id="Quantity"
                   :value="questionNumber"
+                  :disabled="role !== 'teacher'"
                   class="h-8 w-8 border-transparent text-center [-moz-appearance:_textfield] sm:text-sm [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
                 />
 
                 <button
                   @click="increaseQusetion"
+                  :disabled="role !== 'teacher'"
                   type="button"
                   class="size-10 leading-10 text-gray-600 transition hover:opacity-75 hover:border cursor-pointer"
                 >

@@ -1,42 +1,90 @@
 <script setup>
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { onMounted, reactive } from 'vue'
+
+import { getCurrentUser } from '@/services/authService.js'
+import { errorMessage } from '@/services/errorService.js'
+
+import { useToast } from 'vue-toastification'
+import { useUserStore } from '@/stores/user'
+import { useToastOption } from '@/stores/toast.js'
 
 const route = useRoute()
+const router = useRouter()
+const toast = useToast()
+const toastOpt = useToastOption()
+
+const userStore = useUserStore()
+userStore.loadUser()
+const user_id = userStore.user?.user_id
+const role = userStore.user?.role
+
+const state = reactive({
+  full_name: '',
+  email: '',
+})
+
+const logout = () => {
+  userStore.clearUser()
+  toast.success('Berhasil logout.', toastOpt.toastOptions)
+  router.push('/')
+}
+
+onMounted(async () => {
+  try {
+    const response = await getCurrentUser(user_id)
+
+    state.full_name = response.full_name
+    state.email = response.email
+  } catch (error) {
+    errorMessage(error)
+  }
+})
 </script>
 
 <template>
-  <div
-    class="flex h-screen flex-col justify-between border-e border-gray-100 bg-[#E5EDFF] w-[230px]"
-  >
+  <div class="flex h-auto flex-col justify-between border-e border-gray-100 bg-[#E5EDFF] w-56 my-0">
     <div class="px-4 py-10">
-      <span class="grid h-10 place-content-center rounded-lg font-bold text-3xl"> EduTrack </span>
+      <span class="hidden md:block text-black text-4xl font-bold text-center">
+        Edu<span class="text-[#5988FF]">Track</span>
+      </span>
 
       <ul class="mt-6 space-y-1">
         <li>
           <RouterLink
-            to="/dashboard/teacher"
-            :class="[route.name === 'Dashboard' ? 'bg-white' : 'bg-none']"
-            class="block rounded-lg px-9 py-4 text-md"
+            :to="`/dashboard/${role}`"
+            :class="[
+              route.name === 'Dashboard' ? 'bg-white text-gray-800' : 'bg-none text-gray-500',
+            ]"
+            class="block rounded-md px-5 py-2 text-sm font-medium hover:bg-gray-100"
           >
-            Home
+            <i class="fa-solid fa-house me-2"></i> Home
           </RouterLink>
         </li>
 
+        <!-- Teacher -->
         <li>
           <details
             :class="[
-              route.name === 'List-Material' || route.name === 'Add-Material'
-                ? ''
-                : '[&_summary::-webkit-details-marker]:hidden',
+              route.name === 'List-Materials' || route.name === 'Add-Material'
+                ? '[&_summary::-webkit-details-marker] text-gray-800'
+                : '[&_summary::-webkit-details-marker]:hidden bg-none text-gray-500',
             ]"
             class="group"
           >
             <summary
-              class="flex cursor-pointer items-center justify-between rounded-lg px-9 py-4 text-md"
+              class="flex cursor-pointer items-center justify-between rounded-md px-5 py-2 text-sm font-medium hover:bg-gray-100 hover:text-gray-800"
             >
-              <span> Materi </span>
+              <span> <i class="fa-solid fa-folder me-2"></i> Materi </span>
 
-              <span class="shrink-0 transition duration-300 group-open:-rotate-180">
+              <span
+                :class="[
+                  route.name === 'List-Materials' || route.name === 'Add-Material'
+                    ? '[&_summary::-webkit-details-marker]:visible'
+                    : '',
+                ]"
+                class="shrink-0 transition duration-300 group-open:-rotate-180"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="size-5"
@@ -52,12 +100,16 @@ const route = useRoute()
               </span>
             </summary>
 
-            <ul class="mt-2 space-y-1 px-4">
+            <ul v-if="role === 'teacher'" class="mt-2 space-y-1 px-4">
               <li>
                 <RouterLink
-                  to="/dashboard/teacher/materials"
-                  :class="[route.name === 'List-Material' ? 'bg-white' : 'bg-none']"
-                  class="block rounded-lg px-9 py-4 text-sm"
+                  :to="`/dashboard/${role}/materials`"
+                  :class="[
+                    route.name === 'List-Materials'
+                      ? 'bg-white text-gray-800'
+                      : 'bg-none text-gray-500',
+                  ]"
+                  class="block rounded-md px-5 py-2 text-sm font-medium hover:bg-gray-100"
                 >
                   Daftar Materi
                 </RouterLink>
@@ -65,11 +117,31 @@ const route = useRoute()
 
               <li>
                 <RouterLink
-                  to="/dashboard/teacher/materials/add"
-                  :class="[route.name === 'Add-Material' ? 'bg-white' : 'bg-none']"
-                  class="block rounded-lg px-9 py-4 text-sm"
+                  :to="`/dashboard/${role}/materials/add`"
+                  :class="[
+                    route.name === 'Add-Material'
+                      ? 'bg-white text-gray-800'
+                      : 'bg-none text-gray-500',
+                  ]"
+                  class="block rounded-md px-5 py-2 text-sm font-medium hover:bg-gray-100"
                 >
                   Buat Materi
+                </RouterLink>
+              </li>
+            </ul>
+
+            <ul v-else class="mt-2 space-y-1 px-4">
+              <li>
+                <RouterLink
+                  :to="`/dashboard/${role}/materials`"
+                  :class="[
+                    route.name === 'List-Materials'
+                      ? 'bg-white text-gray-800'
+                      : 'bg-none text-gray-500',
+                  ]"
+                  class="block rounded-md px-5 py-2 text-sm font-medium hover:bg-gray-100"
+                >
+                  Daftar Materi
                 </RouterLink>
               </li>
             </ul>
@@ -77,31 +149,27 @@ const route = useRoute()
         </li>
 
         <li>
-          <a
-            href="#"
-            class="block rounded-lg px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          <details
+            :class="[
+              route.name === 'List-Quizzes' || route.name === 'Add-Quiz'
+                ? ' text-gray-800'
+                : '[&_summary::-webkit-details-marker]:hidden bg-none text-gray-500',
+            ]"
+            class="group"
           >
-            Billing
-          </a>
-        </li>
-
-        <li>
-          <a
-            href="#"
-            class="block rounded-lg px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-          >
-            Invoices
-          </a>
-        </li>
-
-        <li>
-          <details class="group [&_summary::-webkit-details-marker]:hidden">
             <summary
-              class="flex cursor-pointer items-center justify-between rounded-lg px-4 py-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+              class="flex cursor-pointer items-center justify-between rounded-md px-5 py-2 text-sm font-medium hover:bg-gray-100 hover:text-gray-800"
             >
-              <span class="text-sm font-medium"> Account </span>
+              <span> <i class="fa-solid fa-file me-2"></i> Quiz </span>
 
-              <span class="shrink-0 transition duration-300 group-open:-rotate-180">
+              <span
+                :class="[
+                  route.name === 'List-Quizzes' || route.name === 'Add-Quiz'
+                    ? '[&_summary::-webkit-details-marker]:visible'
+                    : '',
+                ]"
+                class="shrink-0 transition duration-300 group-open:-rotate-180"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="size-5"
@@ -117,55 +185,101 @@ const route = useRoute()
               </span>
             </summary>
 
-            <ul class="mt-2 space-y-1 px-4">
+            <ul v-if="role === 'teacher'" class="mt-2 space-y-1 px-4">
               <li>
-                <a
-                  href="#"
-                  class="block rounded-lg px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                <RouterLink
+                  :to="`/dashboard/${role}/quizzes`"
+                  :class="[
+                    route.name === 'List-Quizzes'
+                      ? 'bg-white text-gray-800'
+                      : 'bg-none text-gray-500',
+                  ]"
+                  class="block rounded-md px-5 py-2 text-sm font-medium hover:bg-gray-100"
                 >
-                  Details
-                </a>
+                  Daftar Quiz
+                </RouterLink>
               </li>
 
               <li>
-                <a
-                  href="#"
-                  class="block rounded-lg px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                <RouterLink
+                  :to="`/dashboard/${role}/quizzes/add`"
+                  :class="[
+                    route.name === 'Add-Quiz' ? 'bg-white text-gray-800' : 'bg-none text-gray-500',
+                  ]"
+                  class="block rounded-md px-5 py-2 text-sm font-medium hover:bg-gray-100"
                 >
-                  Security
-                </a>
+                  Buat Quiz
+                </RouterLink>
               </li>
+            </ul>
 
+            <ul v-else class="mt-2 space-y-1 px-4">
               <li>
-                <a
-                  href="#"
-                  class="w-full rounded-lg px-4 py-2 [text-align:_inherit] text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                <RouterLink
+                  :to="`/dashboard/${role}/quizzes`"
+                  :class="[
+                    route.name === 'List-Quizzes'
+                      ? 'bg-white text-gray-800'
+                      : 'bg-none text-gray-500',
+                  ]"
+                  class="block rounded-md px-5 py-2 text-sm font-medium hover:bg-gray-100"
                 >
-                  Logout
-                </a>
+                  Daftar Quiz
+                </RouterLink>
               </li>
             </ul>
           </details>
+        </li>
+
+        <li>
+          <button
+            @click="logout"
+            :class="[
+              route.name === 'List-Material' ? 'bg-white text-gray-800' : 'bg-none text-gray-500',
+            ]"
+            class="cursor-pointer block w-full text-left rounded-md px-5 py-2 text-sm font-medium hover:bg-[#FF5678] hover:text-white"
+          >
+            <i class="fa-solid fa-right-from-bracket me-2"></i> Logout
+          </button>
         </li>
       </ul>
     </div>
 
     <div class="sticky inset-x-0 bottom-0 border-t border-gray-100">
-      <a href="#" class="flex items-center gap-2 bg-white p-4 hover:bg-gray-50">
-        <img
-          alt=""
-          src="https://images.unsplash.com/photo-1600486913747-55e5470d6f40?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80"
+      <div class="flex items-center gap-2 bg-white p-4 hover:bg-gray-100">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
           class="size-10 rounded-full object-cover"
-        />
+        >
+          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+          <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+          <g id="SVGRepo_iconCarrier">
+            <circle cx="12" cy="9" r="3" stroke="#000000" stroke-width="1.5"></circle>
+            <path
+              d="M17.9691 20C17.81 17.1085 16.9247 15 11.9999 15C7.07521 15 6.18991 17.1085 6.03076 20"
+              stroke="#000000"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            ></path>
+            <path
+              d="M7 3.33782C8.47087 2.48697 10.1786 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 10.1786 2.48697 8.47087 3.33782 7"
+              stroke="#000000"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            ></path>
+          </g>
+        </svg>
 
         <div>
           <p class="text-xs">
-            <strong class="block font-medium">Eric Frusciante</strong>
+            <strong class="block font-medium">{{ state.full_name }}</strong>
 
-            <span> eric@frusciante.com </span>
+            <span> {{ state.email }} </span>
           </p>
         </div>
-      </a>
+      </div>
     </div>
   </div>
 </template>

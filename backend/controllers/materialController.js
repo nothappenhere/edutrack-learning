@@ -9,10 +9,49 @@ import { v4 as uuidv4 } from 'uuid'
 dotenv.config()
 
 /**
+ * @desc   Getting all materials
+ * @route  GET /api/materials
+ */
+export const getMaterials = async (req, res, next) => {
+  // const id = req.params.id
+
+  try {
+    const result = await db.query(
+      `
+      SELECT
+        materials.*,
+        users.full_name
+      FROM
+        materials
+      INNER JOIN
+        users ON users.id = materials.uploaded_by
+      ORDER BY
+        materials.created_at DESC
+    `,
+    )
+
+    const materials = result.rows
+
+    if (materials.length === 0) {
+      return res.status(404).json({ error: 'Belum ada materi yang tersedia' })
+    }
+
+    res.status(200).json({
+      message: 'Berhasil mendapatkan daftar materi',
+      materials,
+    })
+  } catch (error) {
+    res.status(500).json({ error: 'Gagal mengambil data materi' })
+    console.error('Gagal mengambil data materi:', error)
+    next(error)
+  }
+}
+
+/**
  * @desc   Getting all materials by creator id
  * @route  GET /api/materials/:id
  */
-export const getMaterials = async (req, res, next) => {
+export const getMaterialsById = async (req, res, next) => {
   const id = req.params.id
 
   try {

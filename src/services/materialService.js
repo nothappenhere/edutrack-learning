@@ -2,7 +2,12 @@ import axios from 'axios'
 
 const API_BASE = 'http://localhost:8000/api'
 
-export const getMaterials = async (id) => {
+export const getMaterials = async () => {
+  const response = await axios.get(`${API_BASE}/materials`)
+  return response.data
+}
+
+export const getMaterialsById = async (id) => {
   const response = await axios.get(`${API_BASE}/materials/${id}`)
   return response.data
 }

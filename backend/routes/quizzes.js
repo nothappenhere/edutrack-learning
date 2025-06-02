@@ -3,6 +3,7 @@ const router = express.Router()
 
 import {
   getQuizzes,
+  getQuizzesById,
   getSingleQuiz,
   addQuiz,
   updateQuiz,
@@ -11,7 +12,10 @@ import {
 import { authenticateToken, authorizeRole } from '../middlewares/authMiddleware.js'
 
 //? Route untuk List semua kuis
-router.get('/quizzes/:id', getQuizzes)
+router.get('/quizzes', getQuizzes)
+
+//? Route untuk List semua kuis berdasarkan id
+router.get('/quizzes/:id', getQuizzesById)
 
 //? Route untuk Detail satu kuis
 router.get('/quiz/:id', getSingleQuiz)

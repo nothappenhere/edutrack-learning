@@ -2,9 +2,48 @@ import db from '../config/db.js'
 
 /**
  * @desc   Getting all quizzes
- * @route  GET /api/quizzes/:id
+ * @route  GET /api/quizzes
  */
 export const getQuizzes = async (req, res, next) => {
+  const id = req.params.id
+
+  try {
+    const result = await db.query(
+      `
+      SELECT
+        quizzes.*,
+        users.full_name
+      FROM
+        quizzes
+      INNER JOIN
+        users ON users.id = quizzes.created_by
+      ORDER BY
+        quizzes.created_at DESC
+    `,
+    )
+
+    const quizzes = result.rows
+
+    if (quizzes.length === 0) {
+      return res.status(404).json({ error: 'Belum ada quiz yang tersedia' })
+    }
+
+    res.status(200).json({
+      message: 'Berhasil mendapatkan daftar quiz',
+      quizzes,
+    })
+  } catch (error) {
+    res.status(500).json({ error: 'Gagal mengambil data quiz' })
+    console.error('Gagal mengambil data quiz:', error)
+    next(error)
+  }
+}
+
+/**
+ * @desc   Getting all quizzes
+ * @route  GET /api/quizzes/:id
+ */
+export const getQuizzesById = async (req, res, next) => {
   const id = req.params.id
 
   try {

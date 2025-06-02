@@ -11,6 +11,7 @@ import { errorMessage } from '@/services/errorService.js'
 const userStore = useUserStore()
 userStore.loadUser()
 const user_id = userStore.user?.user_id
+const role = userStore.user?.role
 
 const route = useRoute()
 const materialId = route.params.id
@@ -125,14 +126,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="bg-[#F0F3FF] font-poppins">
+  <section v-if="role === 'teacher'" class="bg-[#F0F3FF] font-poppins">
     <div class="container m-auto max-w-lg py-14">
       <div class="bg-white px-6 py-8 mb-4 rounded-xl m-4 md:m-0 border">
         <form @submit.prevent="handleSubmit">
           <div class="flex justify-between items-center mb-5">
             <div>
               <RouterLink
-                to="/dashboard/teacher/materials"
+                :to="`/dashboard/${role}/materials`"
                 class="text-gray-700 hover:text-gray-900"
               >
                 <i class="fa fa-solid fa-arrow-left me-2"></i>
@@ -361,4 +362,63 @@ onMounted(async () => {
       </div>
     </div>
   </section>
+
+  <div v-else class="container m-auto max-w-lg py-14">
+    <div class="group relative block overflow-hidden border">
+      <!-- Preview PDF atau Gambar -->
+      <div v-if="imagePreview" class="text-center border-b">
+        <!-- Preview PDF -->
+        <iframe
+          v-if="isPDF"
+          :src="imagePreview"
+          class="w-full max-w-3xl h-80 border rounded"
+        ></iframe>
+
+        <!-- Preview Gambar -->
+        <img
+          v-else
+          :src="imagePreview"
+          alt="Preview"
+          class="h-64 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-72"
+        />
+      </div>
+
+      <div class="relative border border-gray-100 bg-white p-6">
+        <span
+          :class="[
+            form.level === 'basic'
+              ? 'bg-green-500'
+              : form.level === 'intermediate'
+                ? 'bg-yellow-500'
+                : 'bg-red-600',
+          ]"
+          class="px-3 py-1.5 text-white text-xs font-medium whitespace-nowrap"
+        >
+          {{ form.level }}
+        </span>
+
+        <h3 class="mt-4 text-lg font-medium text-gray-900">{{ form.title }}</h3>
+
+        <p class="mt-1.5 text-sm text-gray-700">{{ form.description }}</p>
+
+        <form class="mt-4 flex gap-4">
+          <RouterLink
+            :to="`/dashboard/${role}/materials`"
+            class="block w-full rounded-sm bg-gray-100 px-4 py-3 text-sm font-medium text-gray-900 transition hover:scale-105 cursor-pointer text-center"
+          >
+            <i class="fa fa-solid fa-arrow-left me-2"></i>
+            Kembali ke Daftar Materi
+          </RouterLink>
+
+          <a
+            :href="state.material.file_url"
+            target="_blank"
+            class="block w-full rounded-sm bg-gray-900 px-4 py-3 text-sm font-medium text-white transition hover:scale-105 cursor-pointer text-center"
+          >
+            Download Materi
+          </a>
+        </form>
+      </div>
+    </div>
+  </div>
 </template>

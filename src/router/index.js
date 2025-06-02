@@ -52,7 +52,7 @@ const router = createRouter({
           path: 'materials',
           name: 'List-Materials',
           component: ListMaterialView,
-          meta: { requiresRole: 'teacher' },
+          meta: { requiresRole: 'teacher, student' },
         },
         {
           path: 'materials/add',
@@ -71,7 +71,7 @@ const router = createRouter({
           path: 'quizzes',
           name: 'List-Quizzes',
           component: ListQuizzesView,
-          meta: { requiresRole: 'teacher' },
+          meta: { requiresRole: 'teacher, student' },
         },
         {
           path: 'quizzes/add',
