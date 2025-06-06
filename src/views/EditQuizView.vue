@@ -5,7 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import { useToastOption } from '@/stores/toast.js'
 import { useUserStore } from '@/stores/user.js'
-import { getSingleQuiz, updateQuiz, deleteQuiz } from '@/services/quizService.js'
+import { getSingleQuiz, updateQuiz, deleteQuiz, submitQuiz } from '@/services/quizService.js'
 import { errorMessage } from '@/services/errorService.js'
 import Question from '@/components/Question.vue'
 
@@ -40,13 +40,15 @@ const route = useRoute()
 const quizId = route.params.id
 
 const router = useRouter()
-const questions = reactive([])
+const questions = ref([])
 const questionNumber = ref(0)
 const validAnswer = ['A', 'B', 'C', 'D']
+const score = ref(0)
+const isFinished = ref(false)
 
-const increaseQusetion = () => {
+const increaseQuestion = () => {
   questionNumber.value++
-  questions.push({
+  questions.value.push({
     question_text: '',
     option_a: '',
     option_b: '',
@@ -55,70 +57,101 @@ const increaseQusetion = () => {
     correct_answer: '',
   })
 }
-const decreaseQusetion = () => {
+const decreaseQuestion = () => {
   if (questionNumber.value > 0) {
     questionNumber.value--
-    questions.pop()
+    questions.value.pop()
   }
 
   if (questionNumber.value <= 0) questionNumber.value = 0
 }
 
 const handleSubmit = async () => {
-  const toast = useToast()
-  const toastOpt = useToastOption()
+  if (role === 'teacher') {
+    if (!user_id) {
+      return toast.error('Penggguna belum login!', toastOpt.toastOptions)
+    }
 
-  if (!user_id) {
-    return toast.error('Penggguna belum login!', toastOpt.toastOptions)
-  }
+    if (!form.title || !form.subject || !form.level) {
+      return toast.error('Semua kolom harus diisi!', toastOpt.toastOptions)
+    }
 
-  if (!form.title || !form.subject || !form.level) {
-    return toast.error('Semua kolom harus diisi!', toastOpt.toastOptions)
-  }
-
-  if (questions.length === 0) {
-    return toast.error(
-      'Jumlah soal tidak boleh kosong, buat minimal 1 soal!',
-      toastOpt.toastOptions,
-    )
-  }
-
-  // Validasi tiap soal
-  for (const [i, q] of questions.entries()) {
-    if (!validAnswer.includes(q.correct_answer.toUpperCase())) {
+    if (questions.value.length === 0) {
       return toast.error(
-        `Jawaban benar pada soal ${i + 1} tidak valid! Hanya boleh A, B, C, atau D.`,
+        'Jumlah soal tidak boleh kosong, buat minimal 1 soal!',
         toastOpt.toastOptions,
       )
     }
-  }
 
-  form.isSubmitting = true
-  // await new Promise((resolve) => setTimeout(resolve, 3000))
-
-  try {
-    const payload = {
-      title: form.title,
-      subject: form.subject,
-      level: form.level,
-      created_by: user_id,
-      questions: questions.map((q) => ({
-        ...q,
-        correct_answer: q.correct_answer.toUpperCase(), // Pastikan huruf besar saat dikirim
-      })),
+    // Validasi tiap soal
+    for (const [i, q] of questions.value.entries()) {
+      if (!validAnswer.includes(q.correct_answer.toUpperCase())) {
+        return toast.error(
+          `Jawaban benar pada soal ${i + 1} tidak valid! Hanya boleh A, B, C, atau D.`,
+          toastOpt.toastOptions,
+        )
+      }
     }
 
-    const quiz = await updateQuiz(quizId, payload)
+    form.isSubmitting = true
+    // await new Promise((resolve) => setTimeout(resolve, 3000))
 
-    if (quiz.quiz_id) {
-      router.push('/dashboard/teacher/quizzes')
-      toast.success(`${quiz.message}.`, toastOpt.toastOptions)
+    try {
+      const payload = {
+        title: form.title,
+        subject: form.subject,
+        level: form.level,
+        created_by: user_id,
+        questions: questions.value.map((q) => ({
+          ...q,
+          correct_answer: q.correct_answer.toUpperCase(), // Pastikan huruf besar saat dikirim
+        })),
+      }
+
+      const quiz = await updateQuiz(quizId, payload)
+
+      if (quiz.quiz_id) {
+        router.push('/dashboard/teacher/quizzes')
+        toast.success(`${quiz.message}.`, toastOpt.toastOptions)
+      }
+    } catch (error) {
+      errorMessage(error)
+      form.uploadError = true
+    } finally {
+      form.isSubmitting = false
     }
-  } catch (error) {
-    errorMessage(error)
-    form.uploadError = true
-  } finally {
-    form.isSubmitting = false
+  } else if (role === 'student') {
+    if (!user_id) {
+      return toast.error('Penggguna belum login!', toastOpt.toastOptions)
+    }
+
+    form.isSubmitting = true
+
+    try {
+      // Kumpulkan jawaban siswa
+      const payload = {
+        quiz_id: quizId,
+        user_id,
+        answers: questions.value.map((q) => ({
+          question_id: q.id,
+          selected_answer: q.selectedAnswer || null,
+        })),
+      }
+
+      const result = await submitQuiz(quizId, payload) // panggil API backend
+      if (result) {
+        isFinished.value = true
+        score.value = result.score
+      }
+
+      // Tampilkan hasil
+      toast.success(` ${result.message}`, toastOpt.toastOptions)
+    } catch (error) {
+      errorMessage(error)
+      form.uploadError = true
+    } finally {
+      form.isSubmitting = false
+    }
   }
 }
 
@@ -144,7 +177,7 @@ onMounted(async () => {
     form.subject = state.quiz.subject
     form.level = state.quiz.level
 
-    questions.push(...response.questions)
+    questions.value.push(...response.questions)
     questionNumber.value = response.questions.length
   } catch (error) {
     errorMessage(error)
@@ -294,9 +327,29 @@ onMounted(async () => {
               'w-full',
             ]"
             type="submit"
-            :disabled="form.isSubmitting"
           >
-            {{ form.isSubmitting ? 'Memperbarui quiz...' : 'Perbarui' }}
+            {{ role === 'teacher' && form.isSubmitting ? 'Memperbarui kuis...' : 'Perbarui' }}
+          </button>
+
+          <button
+            v-if="role === 'student'"
+            :class="[
+              !form.isSubmitting
+                ? 'bg-[#5988FF] hover:bg-[#4970D1] cursor-pointer'
+                : 'bg-[#4970D1] cursor-not-allowed',
+              'text-white',
+              'font-medium',
+              'py-4',
+              'px-4',
+              'w-full',
+            ]"
+            type="submit"
+          >
+            {{
+              role === 'student' && form.isSubmitting
+                ? 'Menyimpan jawaban kuis...'
+                : 'Kumpulkan Kuis'
+            }}
           </button>
 
           <!-- Alert Error Upload -->
@@ -322,7 +375,10 @@ onMounted(async () => {
               <strong class="font-medium"> Terjadi kesalahan </strong>
             </div>
 
-            <p class="mt-2 text-sm text-red-700">Gagal memperbarui quiz. Silakan coba lagi!</p>
+            <p class="mt-2 text-sm text-red-700">
+              {{ role === 'teacher' ? 'Gagal memperbarui kuis.' : 'Gagal menyimpan jawaban kuis.' }}
+              Silakan coba lagi!
+            </p>
           </div>
         </div>
       </div>
@@ -331,40 +387,67 @@ onMounted(async () => {
         <div class="bg-white px-6 py-8 mb-4 rounded-xl m-4 md:m-0 border">
           <!-- <img class="h-20 w-auto m-auto" src="../assets/img/logo.png" alt="Vue Logo" /> -->
           <h2 class="text-3xl text-center font-bold mb-8">Soal Quiz</h2>
-          <div class="flex justify-between items-center mb-5 gap-3">
-            <div class="flex-1/2 font-semibold text-gray-700 text-right text-lg">
-              <p>Jumlah soal:</p>
+          <div :class="[role === 'teacher' ? 'justify-end' : '']" class="flex justify-between">
+            <div
+              :class="[role === 'teacher' ? 'hidden' : '']"
+              class="flex justify-between items-center mb-5 gap-3"
+            >
+              <div class="flex-1/2 font-semibold text-gray-700 text-right text-lg">
+                <p>Score:</p>
+              </div>
+
+              <div class="bg-gray-100">
+                <label for="Quantity" class="sr-only"> Score </label>
+
+                <div class="flex items-center justify-center rounded-sm border border-gray-200">
+                  <input
+                    type="number"
+                    id="Quantity"
+                    :value="score"
+                    disabled
+                    class="h-8 w-14 border-transparent text-center [-moz-appearance:_textfield] sm:text-sm [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none px-3"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div class="bg-gray-100">
-              <label for="Quantity" class="sr-only"> Quantity </label>
+            <div class="flex justify-between items-center mb-5 gap-3">
+              <div class="flex-1/2 font-semibold text-gray-700 text-right text-lg">
+                <p>Jumlah soal:</p>
+              </div>
 
-              <div class="flex items-center justify-center rounded-sm border border-gray-200">
-                <button
-                  @click="decreaseQusetion"
-                  :disabled="role !== 'teacher'"
-                  type="button"
-                  class="size-10 leading-10 text-gray-600 transition hover:opacity-75 hover:border cursor-pointer"
-                >
-                  &minus;
-                </button>
+              <div class="bg-gray-100">
+                <label for="Quantity" class="sr-only"> Quantity </label>
 
-                <input
-                  type="number"
-                  id="Quantity"
-                  :value="questionNumber"
-                  :disabled="role !== 'teacher'"
-                  class="h-8 w-8 border-transparent text-center [-moz-appearance:_textfield] sm:text-sm [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
-                />
+                <div class="flex items-center justify-center rounded-sm border border-gray-200">
+                  <button
+                    @click="decreaseQuestion"
+                    :disabled="role !== 'teacher'"
+                    type="button"
+                    :class="[role === 'student' ? 'hidden' : '']"
+                    class="size-10 leading-10 text-gray-600 transition hover:opacity-75 hover:border cursor-pointer"
+                  >
+                    &minus;
+                  </button>
 
-                <button
-                  @click="increaseQusetion"
-                  :disabled="role !== 'teacher'"
-                  type="button"
-                  class="size-10 leading-10 text-gray-600 transition hover:opacity-75 hover:border cursor-pointer"
-                >
-                  &plus;
-                </button>
+                  <input
+                    type="number"
+                    id="Quantity"
+                    :value="questionNumber"
+                    :disabled="role !== 'teacher'"
+                    class="h-8 w-8 border-transparent text-center [-moz-appearance:_textfield] sm:text-sm [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+
+                  <button
+                    @click="increaseQuestion"
+                    :disabled="role !== 'teacher'"
+                    type="button"
+                    :class="[role === 'student' ? 'hidden' : '']"
+                    class="size-10 leading-10 text-gray-600 transition hover:opacity-75 hover:border cursor-pointer"
+                  >
+                    &plus;
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -376,6 +459,7 @@ onMounted(async () => {
             v-for="(q, index) in questions"
             :key="index"
             :question-number="index + 1"
+            :isFinished="isFinished"
             v-model:question="questions[index]"
           />
         </div>

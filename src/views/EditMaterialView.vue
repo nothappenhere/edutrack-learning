@@ -364,7 +364,7 @@ onMounted(async () => {
   </section>
 
   <div v-else class="container m-auto max-w-lg py-14">
-    <div class="group relative block overflow-hidden border">
+    <div class="group relative overflow-hidden border">
       <!-- Preview PDF atau Gambar -->
       <div v-if="imagePreview" class="text-center border-b">
         <!-- Preview PDF -->

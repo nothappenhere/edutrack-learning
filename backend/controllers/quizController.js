@@ -238,3 +238,58 @@ export const deleteQuiz = async (req, res, next) => {
     next(error)
   }
 }
+
+/**
+ * @desc   Submit quiz by ID
+ * @route  POST /api/quiz/:id/submit
+ */
+export const submitQuiz = async (req, res, next) => {
+  const quizId = req.params.id
+  const { user_id, answers } = req.body // answers: [{ question_id, selected_answer }]
+
+  try {
+    // Ambil semua soal dari kuis
+    const questionResult = await db.query(
+      `SELECT id, correct_answer FROM questions WHERE quiz_id = $1`,
+      [quizId],
+    )
+
+    const questions = questionResult.rows
+
+    // Validasi: jika kuis tidak ditemukan
+    if (questions.length === 0) {
+      return res.status(404).json({ error: 'Quiz tidak ditemukan atau belum memiliki pertanyaan' })
+    }
+
+    // Hitung skor
+    let correctCount = 0
+
+    for (const answer of answers) {
+      const question = questions.find((q) => q.id === answer.question_id)
+
+      if (question && question.correct_answer.toUpperCase() === answer.selected_answer) {
+        correctCount++
+      }
+    }
+
+    const score = Math.round((correctCount / questions.length) * 100)
+
+    // Simpan submission
+    await db.query(
+      `INSERT INTO submissions (user_id, quiz_id, answers, score)
+       VALUES ($1, $2, $3, $4)`,
+      [user_id, quizId, JSON.stringify(answers), score],
+    )
+
+    res.status(201).json({
+      message: 'Jawaban berhasil tersimpan',
+      score,
+      total_questions: questions.length,
+      correct_answers: correctCount,
+    })
+  } catch (error) {
+    console.error('Gagal submit kuis:', error)
+    res.status(500).json({ error: 'Gagal menyimpan jawaban kuis' })
+    next(error)
+  }
+}

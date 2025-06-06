@@ -31,3 +31,8 @@ export const deleteQuiz = async (id) => {
   const response = await axios.delete(`${API_BASE}/quiz/${id}`)
   return response.data
 }
+
+export const submitQuiz = async (id, data) => {
+  const response = await axios.post(`${API_BASE}/quiz/${id}/submit`, data)
+  return response.data
+}

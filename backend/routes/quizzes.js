@@ -8,6 +8,7 @@ import {
   addQuiz,
   updateQuiz,
   deleteQuiz,
+  submitQuiz,
 } from '../controllers/quizController.js'
 import { authenticateToken, authorizeRole } from '../middlewares/authMiddleware.js'
 
@@ -42,6 +43,14 @@ router.delete(
   authenticateToken, // Cek token JWT
   authorizeRole(['admin', 'teacher']), // Hanya admin/teacher yang boleh delete
   deleteQuiz, // Handler untuk delete
+)
+
+//? Route untuk submit kuis (student only)
+router.post(
+  '/quiz/:id/submit',
+  authenticateToken, // Cek token JWT
+  authorizeRole(['admin', 'student']), // Hanya admin/student yang boleh submit
+  submitQuiz, // Handler untuk add
 )
 
 export default router

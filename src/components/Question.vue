@@ -8,8 +8,11 @@ const role = userStore.user?.role
 const props = defineProps({
   questionNumber: Number,
   question: Object,
+  isFinished: Boolean,
 })
 const emit = defineEmits(['update:question'])
+
+console.log(props.isFinished)
 
 const updateField = (field, value) => {
   emit('update:question', { ...props.question, [field]: value })
@@ -120,9 +123,10 @@ const updateField = (field, value) => {
           <input
             type="radio"
             :name="`answer-${props.questionNumber}`"
-            :value="question.option_a"
+            value="A"
             class="size-5 border-gray-300"
-            @change="updateField('selectedAnswer', question.option_a)"
+            :disabled="isFinished"
+            @change="updateField('selectedAnswer', 'A')"
           />
 
           <div>
@@ -139,9 +143,10 @@ const updateField = (field, value) => {
           <input
             type="radio"
             :name="`answer-${props.questionNumber}`"
-            :value="question.option_b"
+            value="B"
             class="size-5 border-gray-300"
-            @change="updateField('selectedAnswer', question.option_a)"
+            :disabled="isFinished"
+            @change="updateField('selectedAnswer', 'B')"
           />
 
           <div>
@@ -158,9 +163,10 @@ const updateField = (field, value) => {
           <input
             type="radio"
             :name="`answer-${props.questionNumber}`"
-            :value="question.option_c"
+            value="C"
             class="size-5 border-gray-300"
-            @change="updateField('selectedAnswer', question.option_a)"
+            :disabled="isFinished"
+            @change="updateField('selectedAnswer', 'C')"
           />
 
           <div>
@@ -177,9 +183,10 @@ const updateField = (field, value) => {
           <input
             type="radio"
             :name="`answer-${props.questionNumber}`"
-            :value="question.option_d"
+            value="D"
             class="size-5 border-gray-300"
-            @change="updateField('selectedAnswer', question.option_a)"
+            :disabled="isFinished"
+            @change="updateField('selectedAnswer', 'D')"
           />
 
           <div>
