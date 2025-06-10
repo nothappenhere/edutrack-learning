@@ -4,8 +4,8 @@ import { RouterLink, useRoute } from 'vue-router'
 
 import MaterialCard from '@/components/MaterialCard.vue'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
-import { getMaterials, getMaterialsById } from '@/services/materialService.js'
-import { errorMessage } from '@/services/errorService.js'
+import { getMaterials, getMaterialsById } from '../../backend/services/materialService.js'
+import { errorMessage } from '../../backend/services/errorService.js'
 import { useUserStore } from '@/stores/user'
 import Sidebar from '@/components/Sidebar.vue'
 

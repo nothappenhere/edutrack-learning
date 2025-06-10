@@ -2,8 +2,8 @@
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { onMounted, reactive } from 'vue'
 
-import { getCurrentUser } from '@/services/authService.js'
-import { errorMessage } from '@/services/errorService.js'
+import { getCurrentUser } from '../../backend/services/authService.js'
+import { errorMessage } from '../../backend/services/errorService.js'
 
 import { useToast } from 'vue-toastification'
 import { useUserStore } from '@/stores/user'

@@ -6,8 +6,8 @@ import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import { useToastOption } from '@/stores/toast.js'
 import { useUserStore } from '@/stores/user.js'
-import { loginUser } from '@/services/authService.js'
-import { errorMessage } from '@/services/errorService.js'
+import { loginUser } from '../../backend/services/authService.js'
+import { errorMessage } from '../../backend/services/errorService.js'
 
 const router = useRouter()
 const form = reactive({

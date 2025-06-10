@@ -5,8 +5,12 @@ import { useRouter, useRoute } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import { useToastOption } from '@/stores/toast.js'
 import { useUserStore } from '@/stores/user.js'
-import { getSingleMaterial, updateMaterial, deleteMaterial } from '@/services/materialService.js'
-import { errorMessage } from '@/services/errorService.js'
+import {
+  getSingleMaterial,
+  updateMaterial,
+  deleteMaterial,
+} from '../../backend/services/materialService.js'
+import { errorMessage } from '../../backend/services/errorService.js'
 
 const userStore = useUserStore()
 userStore.loadUser()

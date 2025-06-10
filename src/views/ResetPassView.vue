@@ -4,8 +4,8 @@ import { RouterLink, useRouter } from 'vue-router'
 
 import { useToast } from 'vue-toastification'
 import { useToastOption } from '@/stores/toast.js'
-import { checkEmailExist, resetPasswordUser } from '@/services/authService.js'
-import { errorMessage } from '@/services/errorService.js'
+import { checkEmailExist, resetPasswordUser } from '../../backend/services/authService.js'
+import { errorMessage } from '../../backend/services/errorService.js'
 
 const router = useRouter()
 const form = reactive({
