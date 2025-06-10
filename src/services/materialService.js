@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE = `http://13.215.172.125`
+const API_BASE = `http://${import.meta.env.API_BASE}`
 
 export const getMaterials = async () => {
   const response = await axios.get(`${API_BASE}/materials`)
