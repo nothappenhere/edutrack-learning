@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
 
-const API_BASE = `http://${import.meta.env.API_BASE}/auth`
+const API_BASE = `http://13.215.172.125/auth`
 
 export const loginUser = async (payload) => {
   const response = await axios.post(`${API_BASE}/login`, payload)
