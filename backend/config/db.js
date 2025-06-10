@@ -10,7 +10,7 @@ const client = new Client({
   user: process.env.POSTGRE_USER, // Username PostgreSQL
   password: process.env.POSTGRE_PASSWORD, // Password PostgreSQL
   database: process.env.POSTGRE_DATABASE, // Nama database yang ingin digunakan
-  // ssl: { rejectUnauthorized: false }, // Menambahkan SSL
+  ssl: { rejectUnauthorized: false }, // Menambahkan SSL
 })
 
 client
