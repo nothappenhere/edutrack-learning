@@ -2,7 +2,7 @@ import axios from 'axios'
 import dotenv from 'dotenv'
 
 dotenv.config()
-const API_BASE = `http://${process.env.VITE_API_BASE}`
+const API_BASE = `http://${import.meta.env.VITE_API_BASE}`
 
 export const getMaterials = async () => {
   const response = await axios.get(`${API_BASE}/materials`)
