@@ -4,8 +4,8 @@ import { RouterLink, useRoute } from 'vue-router'
 
 import QuizCard from '@/components/QuizCard.vue'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
-import { getQuizzes, getQuizzesById } from '../../backend/services/quizService.js'
-import { errorMessage } from '../../backend/services/errorService.js'
+import { getQuizzes, getQuizzesById } from '../services/quizService.js'
+import { errorMessage } from '../services/errorService.js'
 import { useUserStore } from '@/stores/user'
 import Sidebar from '@/components/Sidebar.vue'
 

@@ -4,8 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { useToast } from 'vue-toastification'
 import { useToastOption } from '@/stores/toast.js'
-import { registerUser } from '../../backend/services/authService.js'
-import { errorMessage } from '../../backend/services/errorService.js'
+import { registerUser } from '../services/authService.js'
+import { errorMessage } from '../services/errorService.js'
 
 const route = useRoute()
 const router = useRouter()

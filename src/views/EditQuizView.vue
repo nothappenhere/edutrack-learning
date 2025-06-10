@@ -5,13 +5,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import { useToastOption } from '@/stores/toast.js'
 import { useUserStore } from '@/stores/user.js'
-import {
-  getSingleQuiz,
-  updateQuiz,
-  deleteQuiz,
-  submitQuiz,
-} from '../../backend/services/quizService.js'
-import { errorMessage } from '../../backend/services/errorService.js'
+import { getSingleQuiz, updateQuiz, deleteQuiz, submitQuiz } from '../services/quizService.js'
+import { errorMessage } from '../services/errorService.js'
 import Question from '@/components/Question.vue'
 
 const userStore = useUserStore()
