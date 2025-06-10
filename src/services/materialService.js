@@ -1,6 +1,8 @@
 import axios from 'axios'
+import dotenv from 'dotenv'
 
-const API_BASE = 'http://localhost:8000/api'
+dotenv.config()
+const API_BASE = `http://${process.env.VITE_API_BASE}`
 
 export const getMaterials = async () => {
   const response = await axios.get(`${API_BASE}/materials`)

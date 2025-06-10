@@ -1,7 +1,9 @@
 import axios from 'axios'
+import dotenv from 'dotenv'
 import { useUserStore } from '@/stores/user'
 
-const API_BASE = 'http://localhost:8000/api/auth'
+dotenv.config()
+const API_BASE = `http://${process.env.VITE_API_BASE}/auth`
 
 export const loginUser = async (payload) => {
   const response = await axios.post(`${API_BASE}/login`, payload)
