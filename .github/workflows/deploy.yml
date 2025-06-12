@@ -49,12 +49,13 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            if [ ! -d "edutrack-learning" ]; then
+            if [ ! -d "/home/ubuntu/edutrack-learning" ]; then
               git clone https://github.com/nothappenhere/edutrack-learning.git
+              cd /home/ubuntu/edutrack-learning
+            else
+              cd /home/ubuntu/edutrack-learning
+              sudo git pull origin main
             fi
-
-            cd edutrack-learning
-            git pull origin main  # Jangan pakai sudo
 
             # Inject .env ke backend
             echo "${{ secrets.ENV_FILE_BACKEND }}" > backend/.env
