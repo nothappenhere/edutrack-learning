@@ -32,3 +32,6 @@ coverage
 .env
 /backend/.env
 
+/backend/node_modules
+/src/node_modules
+

@@ -1,23 +1,25 @@
 # src/Dockerfile
 
-# Stage 1: Build Vue app
-FROM node:18 AS build-stage
+FROM node:18 AS builder
 
 WORKDIR /app
 
-COPY . .
+COPY package*.json ./
 
 RUN npm install
+
+COPY . .
+
 RUN npm run build
 
-# Stage 2: Serve with nginx
-FROM nginx:stable-alpine AS production-stage
+# Stage 2: NGINX
+FROM nginx:alpine
 
-# Copy built files
-COPY --from=build-stage /app/dist /usr/share/nginx/html
-
-# Replace default nginx config
+# Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose HTTP
+COPY --from=builder /app/dist /usr/share/nginx/html
+
 EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

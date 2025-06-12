@@ -6,19 +6,29 @@ services:
   backend:
     build:
       context: ./backend
+      dockerfile: Dockerfile
     container_name: edutrack-backend
     ports:
       - "8000:8000"
     env_file:
       - ./backend/.env
     restart: unless-stopped
+    networks:
+      - edutrack-net
 
   frontend:
     build:
       context: ./src
+      dockerfile: Dockerfile
     container_name: edutrack-frontend
     ports:
       - "80:80"
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - edutrack-net
+
+networks:
+  edutrack-net:
+    driver: bridge
