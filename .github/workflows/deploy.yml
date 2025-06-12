@@ -58,7 +58,7 @@ jobs:
             fi
 
             # Inject .env ke backend
-            echo "${{ secrets.ENV_FILE_BACKEND }}" > backend/.env
+            echo "${{ secrets.ENV_FILE }}" > .env
 
             # Jalankan ulang container
             docker compose down
