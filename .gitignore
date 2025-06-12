@@ -28,4 +28,7 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
 .env
+/backend/.env
+

@@ -18,31 +18,49 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
+      # - name: Deploy to EC2
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+      #       if [ ! -d "/home/ubuntu/edutrack-learning" ]; then
+      #         git clone https://github.com/nothappenhere/edutrack-learning.git
+      #         cd /home/ubuntu/edutrack-learning
+      #       else
+      #         cd /home/ubuntu/edutrack-learning
+      #         sudo git pull origin main
+      #       fi
+
+      #       # Membuat file .env dari GitHub secret
+      #       echo "${{ secrets.ENV_FILE }}" > .env
+
+      #       # Install dependency
+      #       sudo npm install
+
+      #       # Build project
+      #       sudo npm run build
+
+      #       # Deploy ke nginx
+      #       sudo rm -rf /var/www/html/*
+      #       sudo cp -r dist/* /var/www/html/
+
+      #       # Restart nginx
+      #       sudo systemctl restart nginx
+      #     EOF
+
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            if [ ! -d "/home/ubuntu/edutrack-learning" ]; then
+            if [ ! -d "edutrack-learning" ]; then
               git clone https://github.com/nothappenhere/edutrack-learning.git
-              cd /home/ubuntu/edutrack-learning
-            else
-              cd /home/ubuntu/edutrack-learning
-              sudo git pull origin main
             fi
 
-            # Membuat file .env dari GitHub secret
-            echo "${{ secrets.ENV_FILE }}" > .env
+            cd edutrack-learning
+            git pull origin main
 
-            # Install dependency
-            sudo npm install
+            # Inject .env ke backend
+            echo "${{ secrets.ENV_FILE_BACKEND }}" > backend/.env
 
-            # Build project
-            sudo npm run build
-
-            # Deploy ke nginx
-            sudo rm -rf /var/www/html/*
-            sudo cp -r dist/* /var/www/html/
-
-            # Restart nginx
-            sudo systemctl restart nginx
+            # Jalankan ulang container
+            docker compose down
+            docker compose build --no-cache
+            docker compose up -d --force-recreate
           EOF
-
