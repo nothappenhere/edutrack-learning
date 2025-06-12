@@ -10,14 +10,14 @@ RUN npm install
 
 COPY . .
 
-WORKDIR /app/src
+# WORKDIR /app/src
 RUN npm run build
 
 ### STAGE 2: Setup NGINX to serve frontend ###
 FROM nginx:alpine AS frontend
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /app/src/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 ### STAGE 3: Setup Backend ###
 FROM node:18 AS backend

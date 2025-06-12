@@ -8,7 +8,7 @@ import 'vue-toastification/dist/index.css'
 
 import App from './App.vue'
 import router from './router'
-import { useUserStore } from '/stores/user.js'
+import { useUserStore } from '@/stores/user.js'
 
 const app = createApp(App)
 
