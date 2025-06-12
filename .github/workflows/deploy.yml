@@ -54,7 +54,7 @@ jobs:
             fi
 
             cd edutrack-learning
-            git pull origin main
+            git pull origin main  # Jangan pakai sudo
 
             # Inject .env ke backend
             echo "${{ secrets.ENV_FILE_BACKEND }}" > backend/.env
