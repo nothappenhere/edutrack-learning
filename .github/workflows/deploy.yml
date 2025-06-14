@@ -13,6 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Build Docker Image
+        run: docker build -t myapp .
+
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.7.0
         with:
@@ -49,6 +52,8 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            
+            # Masuk ke direktori
             if [ ! -d "/home/ubuntu/edutrack-learning" ]; then
               git clone https://github.com/nothappenhere/edutrack-learning.git
               cd /home/ubuntu/edutrack-learning
@@ -57,7 +62,7 @@ jobs:
               sudo git pull origin main
             fi
 
-            # Inject .env ke backend
+            # Tambahkan .env
             echo "${{ secrets.ENV_FILE }}" > .env
 
             # Jalankan ulang container

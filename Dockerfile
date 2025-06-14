@@ -1,34 +1,19 @@
 # Dockerfile (di root)
 
-### STAGE 1: Build Frontend ###
-FROM node:18 AS builder
-
-WORKDIR /app
-
+# === Build Vue.js & Express.js + Serve Vue dist ===
+FROM node:18 AS frontend
+WORKDIR /app/client
 COPY package*.json ./
 RUN npm install
-
 COPY . .
-
-# WORKDIR /app/src
 RUN npm run build
 
-### STAGE 2: Setup NGINX to serve frontend ###
-FROM nginx:alpine AS frontend
-
+# Copy build hasil Vue
+FROM nginx:alpine AS builder
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=frontend /app/dist /usr/share/nginx/html
 
-### STAGE 3: Setup Backend ###
-FROM node:18 AS backend
-
+# Jalankan aplikasi
 WORKDIR /app
-
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-
-# Expose port backend
 EXPOSE 8000
-CMD ["npm", "run", "server"]
+CMD ["npm", "start.js"]
