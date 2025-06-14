@@ -2,7 +2,7 @@
 
 # === Build Vue.js & Express.js + Serve Vue dist ===
 FROM node:18 AS frontend
-WORKDIR /app/client
+WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
