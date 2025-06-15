@@ -9,8 +9,6 @@ services:
     env_file:
       - .env
     restart: always
-    networks:
-      - app-network
 
   frontend:
     build:
@@ -21,9 +19,3 @@ services:
     env_file:
       - .env
     restart: always
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
