@@ -49,8 +49,6 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            
-            # Masuk ke direktori
             if [ ! -d "/home/ubuntu/edutrack-learning" ]; then
               git clone https://github.com/nothappenhere/edutrack-learning.git
               cd /home/ubuntu/edutrack-learning
