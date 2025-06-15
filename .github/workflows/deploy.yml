@@ -2,7 +2,7 @@ name: Deploy Frontend and Backend to EC2
 
 on:
   push:
-    branches: 
+    branches:
       - main
 
 jobs:
@@ -12,9 +12,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Build Docker Image
-        run: docker build -t myapp .
 
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.7.0

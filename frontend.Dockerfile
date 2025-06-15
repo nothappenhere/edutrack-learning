@@ -1,0 +1,16 @@
+# frontend.Dockerfile
+FROM node:18-alpine as build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+# Stage for nginx
+FROM nginx:alpine
+COPY --from=build /dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+
