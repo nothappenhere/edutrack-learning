@@ -1,21 +1,22 @@
 version: '3.8'
 services:
-  backend:
+  webapp:
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"  # host:container
-    env_file:
-      - .env
-    restart: always
-
-  frontend:
-    build:
-      context: .
-      dockerfile: frontend.Dockerfile
-    ports:
       - "80:80"
     env_file:
       - .env
     restart: always
+
+  # frontend:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "80:80"
+  #   env_file:
+  #     - .env
+  #   restart: always

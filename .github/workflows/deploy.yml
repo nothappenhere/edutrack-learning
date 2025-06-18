@@ -52,7 +52,7 @@ jobs:
             if [ -d "/home/ubuntu/edutrack-learning" ]; then
               cd /home/ubuntu/edutrack-learning
               sudo git fetch --all
-              sudo git reset --hard origin/main   # ⬅️ menimpa perubahan lokal
+              sudo git reset --hard origin/main   # menimpa perubahan lokal
             else
               git clone https://github.com/nothappenhere/edutrack-learning.git
               cd edutrack-learning
