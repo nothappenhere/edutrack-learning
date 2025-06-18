@@ -1,4 +1,4 @@
 //* Run server and database
-import './backend/config/db.js'
-import './backend/server.js'
+import './config/db.js'
+import './server.js'
 
