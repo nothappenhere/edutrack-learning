@@ -1,6 +1,7 @@
 version: '3.8'
 services:
   backend:
+    container_name: edutrack-learning-backend
     build:
       context: ./backend
     ports:
@@ -10,6 +11,7 @@ services:
     restart: always
 
   frontend:
+    container_name: edutrack-learning-frontend
     build:
       context: .
     ports:
