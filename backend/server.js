@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: false }))
 // app.use(morgan('dev')) // Log HTTP requests
 
 //* Routes
-app.use('/api', auth, materials, quizzes)
+app.use('/', auth, materials, quizzes)
 
 //* Error Handling
 app.use(notFound)

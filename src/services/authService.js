@@ -3,7 +3,7 @@ import { useUserStore } from '@/stores/user'
 
 const API_BASE = import.meta.env.VITE_API_BASE
   ? `${import.meta.env.VITE_API_BASE}/auth`
-  : 'http://localhost:8000/api/auth'
+  : 'http://localhost:8000/auth'
 
 export const loginUser = async (payload) => {
   const response = await axios.post(`${API_BASE}/login`, payload)
